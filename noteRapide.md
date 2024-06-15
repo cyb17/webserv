@@ -5,7 +5,6 @@ g { color: Green }
 y { color: Yellow }
 </style>
 
-
 # Webserv
 ____
 

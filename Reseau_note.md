@@ -10,7 +10,7 @@ ___
 
 ### Les reseaux : 
 
-Le reseau possede 3 types de composants physiques :
+Le reseau possede 3 types de **composants physiques** :
 <br><y>-	les peripheriques de terminaison</y> : ordinateurs, imprimantes, serveurs.
 <br><y>-	les equipements intermediaires</y> qui servent a interconnecter les peripheriques de terminaison entre eux sur le reseau : routeur et switch.
 <br><y>-	le support</y> qui transporte les donnees : cable , fibre optique.
