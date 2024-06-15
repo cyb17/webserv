@@ -83,6 +83,5 @@ ___
 
 <o>ntohl, ntohs</o> : pareil que htonl et htons mais du reseau standard a l'hote.
 
-|	|	|
-|-|-
-|contenue 1|contenue 2|
+<br>
+
