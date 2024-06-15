@@ -33,4 +33,4 @@ ___
 
 <o>IP</o> : Internet Protocol, utilise pour la communication sur internet et en reseau locaux en connectant des ordinateurs, des imprimantes et d'autres dispositifs.
 
-<g><g>
+il existe 2 types d'adresse IP : public et privee. Les adresses privees en sont pas routable sur internet.
