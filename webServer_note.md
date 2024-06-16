@@ -27,8 +27,11 @@ Il sert a servir les pages web aux clients.
 <br> Au <y>niveau logiciel</y>, il controle comment les utilisateurs peuvent acceder aux fichiers heberges.
 
 Le serveur web contient aumoins un serveur HTTP qui utilise le protocol HTTP pour <y>recevoir</y>, <y>traiter</y>, et <y>renvoyer</y> la page demandee par l'utilisateur.  
+Le serveur peut etre <y>statique</y> : il livre les fichiers tels quels.<br> Ou <y>dynamique</y> : les fichier sont mis a jour par un serveur d'application avant d'etre livres.
 
 ## <lb>3.	comment fonctionne t-il ?</lb>
+
+![fonctionnement du serveur](./img/web-server.svg)
 
 <o>HTTP</o> : 
 

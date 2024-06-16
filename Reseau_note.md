@@ -3,20 +3,20 @@ r { color: red }
 o { color: Orange }
 y { color: Yellow }
 g { color: LightGreen }
+lb{ color: LightBlue }
 </style>
+---
+# <p style="text-align: center">RESEAU</p>
 
-# RESEAU
-___
+Le reseau permet a des machines interconnectees de pouvoir echanger des donnees.
 
-### Les reseaux : 
+Le reseau possede 3 types de <y>composants physiques</y> :
+<br>-	<y>les peripheriques de terminaison</y> : ordinateurs, imprimantes, serveurs.
+<br>-	<y>les equipements intermediaires</y> qui servent a interconnecter les peripheriques de terminaison entre eux sur le reseau : routeur et switch.
+<br>-	<y>le support</y> qui transporte les donnees : cable , fibre optique.
 
-Le reseau possede 3 types de **composants physiques** :
-<br><y>-	les peripheriques de terminaison</y> : ordinateurs, imprimantes, serveurs.
-<br><y>-	les equipements intermediaires</y> qui servent a interconnecter les peripheriques de terminaison entre eux sur le reseau : routeur et switch.
-<br><y>-	le support</y> qui transporte les donnees : cable , fibre optique.
-
-<g>Le reseau permet a des machines interconnectees de pouvoir echanger des donnees.</g>
-
+---
+### Les reseaux :
 <o>PAN et WPAN</o> : Personal area network et Wireless Personal area network, reseau de quelque metre, interconnection dans une piece (casque, souris...) 
 
 <br><o>LAN et WLAN</o> : Wireless Local Area Network, reseau d'une zone restreinte (immeuble, batiment, maison...), interconnextion a l'aide des cables ethernets ou la WIFI.
@@ -25,12 +25,17 @@ Le reseau possede 3 types de **composants physiques** :
 
 <br><o>WAN</o> : Wide Area Network, permet d'interconnecter les LAN ou MAN grace a des infrastructures fibre optique, des cables sous-marins et des transmissions par satellite.
 
-___
+---
 
-### Adresse IP : 
+### IP : 
 
-<g>Une adresse IP est un numero **unique** attribue a un objet connecte a l'internet, un peu comme un numero de telephone qui permet la communication par internet. </g>
+Une <y>adresse IP</y> est un numero <y>unique</y> attribue a un objet connecte a un reseau informatique. Il peut etre <y>public</y> ou <y>prive</y>(non routable sur internet) </g>
 
-<o>IP</o> : Internet Protocol, utilise pour la communication sur internet et en reseau locaux en connectant des ordinateurs, des imprimantes et d'autres dispositifs.
+<o>IP</o> : <y>Internet Protocol</y> est utilise pour le routage et l'adressage des packets. 
 
-il existe 2 types d'adresse IP : public et privee. Les adresses privees en sont pas routable sur internet.
+---
+
+### Modele de communication TCP/IP et OSI :
+
+![](./img/OSI_TCP_IP.png)
+
