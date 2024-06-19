@@ -4,10 +4,10 @@ o { color: Orange }
 g { color: Green }
 y { color: Yellow }
 lb { color: LightBlue }
-lg { color: LightGreen }
+lg { color: LightGreen }          
 </style>
 <lb>Questions</lb>  
-<lg>Reponse</lg>  
+<lg>Outil</lg>  
 <o>Mots cles</o>  
 
 #	<p style="text-align: center;"> Serveur Web</p>
@@ -38,3 +38,10 @@ Le serveur peut etre <y>statique</y> : il livre les fichiers tels quels.<br> Ou 
 ## Ressources
 
 https://developer.mozilla.org/fr/docs/Learn/Common_questions/Web_mechanics/What_is_a_web_server
+
+
+## Outils
+
+<lg>netstat</lg> : commande pour afficher diverses informations sur les connexions réseau, les tables de routage, les statistiques d'interface et d'autres informations relatives au réseau.
+
+<lg>telnet</lg> : un protocole de communication réseau très ancien qui permet à un utilisateur d'établir une session interactive avec un autre ordinateur sur un réseau, typiquement via le protocole TCP/IP. 
