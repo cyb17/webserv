@@ -5,8 +5,8 @@
 |Serveur WEB| <span style="color:green">O|
 |RFC|X|
 |Fichiers extension tpp et ipp|X|
-|Fonctions externes autorisées|X|
-|Poll(), select(), kqueue() ou epoll()|X|
+|Fonctions externes autorisées| <span style="color:green">O|
+|Poll(), select(), kqueue() ou epoll()|<span style="color:green">O|
 |Serveur non bloquant| <span style="color:green">O|
 |Macro FD_SET, FD_CLR, FD_ISSET et FD_ZERO|X|
 |codes d’état de réponse HTTP|X| 
@@ -31,7 +31,6 @@
 |Servir un site web entièrement statique|X|
 |Téléverser des fichiers|X|
 |<span style="color:lightgreen">FICHIER DE CONFIGURATION
-|Definir le nombre de serveur|X|
 |Choisir le port et l’host de chaque "serveur"|X|
 |Setup server_names ou pas|X|
 |Setup des pages d’erreur par défaut|X|
