@@ -16,7 +16,7 @@
 -	Parser la syntaxe et les en-tetes.
 -	Extraire les infos.
 -	Parser les infos extrait.
--	Traite la requete : statique ou dynamique(a l'aide de CGI).
+-	Traite la requete : statique ou CGI(dynamique).
 -	Construit la reponse.
 -	Retourner la reponses.
 
