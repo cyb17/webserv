@@ -1,6 +1,6 @@
 ## Notions WEB
 
-* **Navigateur WEB** = logiciel pour consuler et afficher le World Wide web (ex.: google chrome, mozilla firefox, etc ...)
+* **Navigateur WEB** = logiciel pour consulter et afficher le World Wide web (ex.: google chrome, mozilla firefox, etc ...)
 
 * **Page WEB** = document qui peut etre affiché par un navigateur web
 
@@ -38,9 +38,14 @@ Cet affichage change en fonction d’un certain nombre de facteurs tels que les 
 	4. Envoi de la Réponse une Fois Prête : Lorsque l'opération d'E/S est terminée, le serveur finalise le traitement et envoie la réponse au client.
 
 ## Comment envoyer et recevoir des donnees a distance entre le navigateur et le serveur?
-* Creer des **SOCKETS** <br/><br/>
-**Qu’est-ce qu’une socket ?** <br/>
+On va utiliser des **SOCKETS**. <br/><br/>
+**Qu’est-ce qu’un socket ?** <br/>
 => Descripteur de fichier qui permet de communiquer a distance. Il y a plusieurs types de sockets different, pour le sujet, on va s'interesser aux sockets internet. <br/>
 Les 2 types principaux sont: <br/>
--> **Stream sockets (SOCK_STREAM)**, qui se servent du protocole TCP pour communiquer. Ce protocole permet un transport des données fiable et connecté, au coût d’une performance réduite. <br/>
+-> **Stream sockets (SOCK_STREAM)**, qui se servent du protocole TCP pour communiquer. Ce protocole permet un transport des données fiable et connecté, au coût d’une performance réduite. () <br/>
 -> **Datagram sockets (SOCK_DGRAM)**, qui utilisent le protocole UDP. Contrairement à TCP, UDP permet une transmission sans connexion, rapide mais sans garanties.
+
+* **Etapes pour etablir la connection entre le client et le serveur:** <br/>
+	1. creer un socket "serveur_fd" <br/>
+	fonctions a utiliser: socket() et strerror()
+	2. initialiser la structure  stockadress

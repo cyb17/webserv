@@ -88,7 +88,7 @@
 * **setsockopt** <sys/socket.h>
 	* Prototype :
 		* int setsockopt(int socket, int level, int option_name, const void *option_value, socklen_t option_len)
-	* Description : définir les options d'une socket
+	* Description : définir les options d'un socket
 
 * **getsockname** <sys/socket.h>
 	* Prototype :

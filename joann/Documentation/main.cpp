@@ -1,73 +1,57 @@
-#include <stdio.h>
-#include <stdlib.h>
+#include <sys/socket.h>
+#include <iostream>
 #include <string.h>
 #include <unistd.h>
-#include <arpa/inet.h>
+#include <errno.h>
+#include <netinet/in.h>
+#include <netdb.h>
 
 #define PORT 8080
-#define BUFFER_SIZE 1024
+#define HOST "www.exemple.com"
+#define BACKLOG 1024
 
-void handle_client(int client_socket) {
-    char buffer[BUFFER_SIZE];
-    read(client_socket, buffer, sizeof(buffer) - 1);
-    printf("Received request:\n%s\n", buffer);
-
-    char response[] =
-        "HTTP/1.1 200 OK\r\n"
-        "Content-Type: text/html\r\n"
-        "Content-Length: 59\r\n"
-        "\r\n"
-        "<html><body><h1>Hello, World!</h1><p>This is a simple web server.</p></body></html>";
-
-    write(client_socket, response, sizeof(response) - 1);
-    close(client_socket);
+void handle_error(char *err, int fd, int i)
+{
+	if (!i)
+		std::cout << "ERROR : " << err << " => " << gai_strerror(errno) << "\n";
+	else
+		std::cout << "ERROR : " << err << " => " << strerror(errno) << "\n";
+	if (fd > -1)
+		close(fd);
+	exit(errno);
 }
 
-int main() {
-    int server_fd, client_socket;
-    struct sockaddr_in address;
-    int addrlen = sizeof(address);
+int main()
+{
+	int server_fd, client_fd;
+	int status;
+	sockaddr_in soc_addr;
+	addrinfo hints;
+	addrinfo *res;
 
-    server_fd = socket(AF_INET, SOCK_STREAM, 0);
-    if (server_fd == 0) {
-        perror("socket failed");
-        exit(EXIT_FAILURE);
-    }
+	//recuperer l'adresse ip
+	memset(&hints, 0, sizeof(hints));
+	hints.ai_family = AF_INET;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_protocol = 0;
+	hints.ai_flags = 0;
+	status = getaddrinfo(HOST, 0, &hints, &res);
+	if (status != 0)
+		handle_error("getaddrinfo", -1, 0);
 
-    int opt = 1;
-    if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) {
-        perror("setsockopt");
-        close(server_fd);
-        exit(EXIT_FAILURE);
-    }
+	//creation du socket serveur
+	server_fd = socket(res->ai_family, res->ai_socktype, res->ai_protocol); 
+	if (server_fd == -1)
+		handle_error("socket", server_fd, 1);
 
-    address.sin_family = AF_INET;
-    address.sin_addr.s_addr = INADDR_ANY;
-    address.sin_port = htons(PORT);
+	//Lier la socket à l’addresse IP
+	status = bind(server_fd, res->ai_addr, res->ai_addrlen);
+	if (status != 0)
+		handle_error("bind", server_fd, 1);
 
-    if (bind(server_fd, (struct sockaddr *)&address, sizeof(address)) < 0) {
-        perror("bind failed");
-        close(server_fd);
-        exit(EXIT_FAILURE);
-    }
+	//Écouter via la socket pour détecter des demandes de connexion
 
-    if (listen(server_fd, 3) < 0) {
-        perror("listen");
-        close(server_fd);
-        exit(EXIT_FAILURE);
-    }
 
-    printf("Server is listening on port %d\n", PORT);
-
-    while (1) {
-        client_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t *)&addrlen);
-        if (client_socket < 0) {
-            perror("accept");
-            continue;
-        }
-        handle_client(client_socket);
-    }
-
-    close(server_fd);
-    return 0;
+	close(server_fd);
+	return(0);
 }
