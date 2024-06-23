@@ -12,27 +12,34 @@ y { color: Yellow }
 
 -	Ecrire un fichier de configuration.
 -	Analyser le contenu fichier : syntaxe, directives et parametres.
+
+	-	server
+		-	listen
+		-	host				
+		-	serverName
+		-	clientMaxBodySize
+		-	root
+		-	index
+		-	defaultErrorPage
+		-	locations
+			-	allowMethods
+			-	autoIndex;
+			-	index
+			-	redirection
+
+syntaxe errors :	
+
+	*	si des caracteres non whitespaces existe en dehors du server{}.
+	*	si {} n'est pas correctement fermee.
+	*	si une ligne de directives ne se termine pas par ; .
+
+directives et ses parametres errors :
+
+	*	si une directives non connue est utilisee.
+	*	listen : si parametreNb < 0 || paratemeNb > 2 || portNumber != 0 - 65535 || 2eme parametre != "defaultServer" ou NULL.
+
 -	Extraire les informations. 		
 -	Stocker les informations dans des structures de donnees.
-
-objet : Server : contient :
-	
-	private:
-		host
-		port
-		name
-		root
-		error_pages
-		client_max_body_size
-		methodes_accepted_for_root
-		redirection
-		listing
-		defFile
-	public:
-		getHost
-		getPort
-		getName
-		getRoot
 
 
 2-	Connexion client - serveur : 
@@ -47,8 +54,6 @@ objet : Server : contient :
 -	Traite la requete : statique ou CGI(dynamique).
 -	Construit la reponse.
 -	Retourner la reponses.
-
-
 
 
 *	les testes a faire avec NGINX : 
