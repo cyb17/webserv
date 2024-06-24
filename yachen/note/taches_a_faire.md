@@ -5,7 +5,6 @@ g { color: Green }
 y { color: Yellow }
 </style>
 
-
 # Idees :
 
 1-	Fichier de configuration :
@@ -37,14 +36,21 @@ directives et ses parametres errors :
 
 	*	si une directives non connue est utilisee.
 	*	listen : si parametreNb < 0 || paratemeNb > 2 || portNumber != 0 - 65535 || 2eme parametre != "defaultServer" ou NULL.
+	*	host : si ip non valid, ip=NULL et host sera parse par getaddrinfo, sinon ip sera parse par socketpair().
+	*	serverName : caracteres autorise : alphanumerique et '_', ne doit pas commence par un chiffre.
+	*	clientMaxBodySize :  doit etre entre 0 et 1000000.
+	*	errorPages : 1 code 1 path
+	*	location : directives autorises : allowMethods(GET, POST, DELETE), index(path), autoindex(on | off), return(301, URL)
 
 -	Extraire les informations. 		
--	Stocker les informations dans des structures de donnees.
+-	Stocker les informations dans des structures de donnees : utilise conteneur map
 
 
 2-	Connexion client - serveur : 
 
--	sockets programmation.
+-	sockets programmation : 
+
+	*	socketpair() : domain = AF_INET(IPv4), type = SOCK_STREAM | SOCK_NONBLOCK, protocol = 0
 
 3-	Requetes HTTP : 
 
