@@ -6,7 +6,7 @@
 /*   By: joannpdetorres <joannpdetorres@student.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/24 13:33:43 by joannpdetor       #+#    #+#             */
-/*   Updated: 2024/06/24 15:39:54 by joannpdetor      ###   ########.fr       */
+/*   Updated: 2024/06/24 21:56:10 by joannpdetor      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,23 +21,27 @@
 # include <netinet/in.h>
 # include <netdb.h>
 # include <vector>
+# include <poll.h>
+
+# define BACKLOG 1024
 
 class TcpSocket
 {
     private :
-        std::string                 _IpAdress;
-        int                         _port;
+        std::string                 _adressIp;
+        std::string                 _port;
         int                         _serverSocket;
-        std::vector<struct pollfd>  _tabSockets;            
+        //std::vector<struct pollfd>  _listSockets;
+       // addrinfo                    *_res;       
 
     public :
-        TcpSocket();
-        TcpSocket(std::string IpAdress, int port);
+        TcpSocket(std::string &IpAdress, std::string &port);
         ~TcpSocket();
 
         void init();
         void run();
-        void handle_error(char *err, int fd, int i);
+        // void acceptNewConnexion();
+        void handle_error(const char *err, int i);
 };
 
 #endif
