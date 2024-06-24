@@ -1,12 +1,12 @@
-#include "TcpSocket.cpp"
+#include "TcpSocket.hpp"
 
 int main()
 {
-	std::string ip = "127.0.0.1";
-	std::string port = "8080";
+	std::string ip("127.0.0.1");
+	std::string port("8080");
 	TcpSocket webserv(ip, port);
 
 	webserv.init();
-	//webserv.run();
+	webserv.run();
 	return(0);
 }

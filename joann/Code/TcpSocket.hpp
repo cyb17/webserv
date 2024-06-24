@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   TCPsocket.hpp                                      :+:      :+:    :+:   */
+/*   TcpSocket.hpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: joannpdetorres <joannpdetorres@student.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/24 13:33:43 by joannpdetor       #+#    #+#             */
-/*   Updated: 2024/06/24 21:56:10 by joannpdetor      ###   ########.fr       */
+/*   Updated: 2024/06/24 22:54:04 by joannpdetor      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,8 +31,8 @@ class TcpSocket
         std::string                 _adressIp;
         std::string                 _port;
         int                         _serverSocket;
-        //std::vector<struct pollfd>  _listSockets;
-       // addrinfo                    *_res;       
+        std::vector<struct pollfd>  _listSockets;
+        addrinfo                    *_res;       
 
     public :
         TcpSocket(std::string &IpAdress, std::string &port);
@@ -40,7 +40,7 @@ class TcpSocket
 
         void init();
         void run();
-        // void acceptNewConnexion();
+        void acceptNewConnexion();
         void handle_error(const char *err, int i);
 };
 
