@@ -13,7 +13,7 @@ Cet affichage change en fonction d’un certain nombre de facteurs tels que les 
 
 **Serveur WEB** = technologie qui stocke les fichiers (code et donnees) qui composent un site web et qui les envoie a l'appareil de l'utilisateur qui visite le site
 
-**FONCTIONNEMENT** <br/>
+* **FONCTIONNEMENT** <br/>
 **1.** Le navigateur va utiliser l'URL entré pour trouver l'adresse IP du serveur<br/>
 **2.** Le navigateur va envoyer une requete HTTP pour obtenir des informations<br/>
 **3.** Le serveur web va communiquer avec un serveur de base donnees pour trouver les donnees pertinentes<br/>
@@ -22,13 +22,13 @@ Cet affichage change en fonction d’un certain nombre de facteurs tels que les 
 
 <img src="/Documentation/comment-fonctionne-un-serveur-web.png" alt="fonctionnement serveur web"/><br/>
 
-**DIFFERENCE ENTRE UN SERVEUR BLOQUANT ET NON BLOQUANT** <br/> 
-* **Serveur bloquant :** chaque requête est traitée de manière séquentielle et synchrone. Cela signifie que le serveur bloque (attend) jusqu'à ce que chaque opération soit terminée avant de passer à la suivante.<br/>
+* **DIFFERENCE ENTRE UN SERVEUR BLOQUANT ET NON BLOQUANT** <br/> 
+	* **Serveur bloquant :** chaque requête est traitée de manière séquentielle et synchrone. Cela signifie que le serveur bloque (attend) jusqu'à ce que chaque opération soit terminée avant de passer à la suivante.<br/>
 	**Fonctionnement :**
-	1. Acceptation de la Connexion : Le serveur accepte une connexion entrante.
-	2. Traitement de la Requête : Le serveur traite la requête en effectuant des opérations telles que la lecture de fichiers, l'accès à des bases de données, etc.
-	3. Réponse à la Requête : Une fois le traitement terminé, le serveur envoie une réponse au client.
-	4. Attente de la Prochaine Requête : Le serveur attend ensuite la prochaine requête.
+		1. Acceptation de la Connexion : Le serveur accepte une connexion entrante.
+		2. Traitement de la Requête : Le serveur traite la requête en effectuant des opérations telles que la lecture de fichiers, l'accès à des bases de données, etc.
+		3. Réponse à la Requête : Une fois le traitement terminé, le serveur envoie une réponse au client.
+		4. Attente de la Prochaine Requête : Le serveur attend ensuite la prochaine requête.
 
 * **Serveur non bloquant :** les opérations d'E/S sont effectuées de manière asynchrone, ce qui permet au serveur de continuer à traiter d'autres requêtes pendant qu'il attend la fin d'une opération.<br/>
 	**Fonctionnement :**
@@ -38,14 +38,21 @@ Cet affichage change en fonction d’un certain nombre de facteurs tels que les 
 	4. Envoi de la Réponse une Fois Prête : Lorsque l'opération d'E/S est terminée, le serveur finalise le traitement et envoie la réponse au client.
 
 ## Comment envoyer et recevoir des donnees a distance entre le navigateur et le serveur?
-On va utiliser des **SOCKETS**. <br/><br/>
+On va utiliser des **SOCKETS** pour etablir la connexion. <br/><br/>
 **Qu’est-ce qu’un socket ?** <br/>
 => Descripteur de fichier qui permet de communiquer a distance. Il y a plusieurs types de sockets different, pour le sujet, on va s'interesser aux sockets internet. <br/>
 Les 2 types principaux sont: <br/>
 -> **Stream sockets (SOCK_STREAM)**, qui se servent du protocole TCP pour communiquer. Ce protocole permet un transport des données fiable et connecté, au coût d’une performance réduite. () <br/>
 -> **Datagram sockets (SOCK_DGRAM)**, qui utilisent le protocole UDP. Contrairement à TCP, UDP permet une transmission sans connexion, rapide mais sans garanties.
-
-* **Etapes pour etablir la connection entre le client et le serveur:** <br/>
+* **Etapes pour etablir la connexion entre le client et le serveur:** <br/>
 	1. creer un socket "serveur_fd" <br/>
 	fonctions a utiliser: socket() et strerror()
-	2. initialiser la structure  stockadress
+	2. initialiser la structure  stockadress <br/>
+	fonctions a utiliser : getadressinfo() et gai_strerror
+	3. lier l'adresse ip et le port au socket <br/>
+	fonctions a utiliser: bind() et strerror()
+	4. mettre la socket en attente de connexion <br/>
+	fonctions a utiliser : listen() et strerror()
+	5. etablir la connexion en acceptant un appel qui va creer un socket pour le client (client_fd) <br/>
+	fonctions a utiliser : accept() et strerror()
+	
