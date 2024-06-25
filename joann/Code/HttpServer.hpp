@@ -1,19 +1,20 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   TcpSocket.hpp                                      :+:      :+:    :+:   */
+/*   HttpServer.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: joannpdetorres <joannpdetorres@student.    +#+  +:+       +#+        */
+/*   By: jp-de-to <jp-de-to@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/24 13:33:43 by joannpdetor       #+#    #+#             */
-/*   Updated: 2024/06/24 22:54:04 by joannpdetor      ###   ########.fr       */
+/*   Updated: 2024/06/25 09:02:53 by jp-de-to         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef TCPSOCKET_HPP
-# define TCPSOCKET_HPP
+#ifndef HTTPSERVER_HPP
+# define HTTPSERVER_HPP
 
 # include <sys/socket.h>
+# include <cstdlib>
 # include <iostream>
 # include <string.h>
 # include <unistd.h>
@@ -22,26 +23,29 @@
 # include <netdb.h>
 # include <vector>
 # include <poll.h>
+# include <fcntl.h>
 
 # define BACKLOG 1024
 
-class TcpSocket
+class HttpServer
 {
     private :
         std::string                 _adressIp;
         std::string                 _port;
         int                         _serverSocket;
         std::vector<struct pollfd>  _listSockets;
-        addrinfo                    *_res;       
+        addrinfo                    *_res;
 
     public :
-        TcpSocket(std::string &IpAdress, std::string &port);
-        ~TcpSocket();
+        HttpServer(std::string &IpAdress, std::string &port);
+        ~HttpServer();
 
         void init();
         void run();
         void acceptNewConnexion();
-        void handle_error(const char *err, int i);
+		void handle_error(const char *err, int i);
+		void setNonBlock(int socket);
+		std::string build_response();
 };
 
 #endif
