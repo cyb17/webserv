@@ -6,7 +6,7 @@
 /*   By: jp-de-to <jp-de-to@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/24 13:33:43 by joannpdetor       #+#    #+#             */
-/*   Updated: 2024/06/25 09:02:53 by jp-de-to         ###   ########.fr       */
+/*   Updated: 2024/06/26 15:35:49 by jp-de-to         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,7 @@
 # include <vector>
 # include <poll.h>
 # include <fcntl.h>
+# include "Request.hpp";
 
 # define BACKLOG 1024
 
@@ -43,9 +44,12 @@ class HttpServer
         void init();
         void run();
         void acceptNewConnexion();
-		void handle_error(const char *err, int i);
 		void setNonBlock(int socket);
+		
 		std::string build_response();
+		void serverError(const char *err, int i);
+		void diplayMsgError(const char *err, int i);
+		void freeAndClose();
 };
 
 #endif
