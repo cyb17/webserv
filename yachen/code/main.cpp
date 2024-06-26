@@ -6,7 +6,7 @@
 /*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/24 16:27:37 by yachen            #+#    #+#             */
-/*   Updated: 2024/06/25 17:02:23 by yachen           ###   ########.fr       */
+/*   Updated: 2024/06/26 17:19:58 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,8 +20,15 @@ int	main( int argc, char** argv )
 		std::cout << "Error: invalid argument number\n";
 		return 1;
 	}
-	ConfigFile	file( argv[1] );
-	file.makeTokenList();
-	
+	try
+	{
+		ConfigFile	file( argv[1] );
+		file.makeTokenList();
+		file.analyseTokenList();
+	}
+	catch (std::invalid_argument& e)
+	{
+		std::cout << "Error: " << e.what() << std::endl;
+	}
 	return 0;
 }

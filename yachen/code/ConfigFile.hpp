@@ -6,7 +6,7 @@
 /*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/24 16:10:52 by yachen            #+#    #+#             */
-/*   Updated: 2024/06/25 17:47:56 by yachen           ###   ########.fr       */
+/*   Updated: 2024/06/26 17:17:46 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,8 +21,7 @@ enum tokenType
 	DIRECTIVE = 1,
 	PARAMETER = 2,
 	BRACE_OP = 3,
-	BRACE_CL = 4,
-	SEMICOLON = 5
+	BRACE_CL = 4
 };
 
 typedef struct Token
@@ -75,6 +74,7 @@ class	ConfigFile
 		~ConfigFile();
 
 		void	makeTokenList();
+		void	checkBrace();
 		void	analyseTokenList();
 		// void	extractTokenListInfo();
 		// const std::vector<Server>&	getServerList();
