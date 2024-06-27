@@ -6,7 +6,7 @@
 /*   By: jp-de-to <jp-de-to@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/24 13:33:43 by joannpdetor       #+#    #+#             */
-/*   Updated: 2024/06/27 11:58:53 by jp-de-to         ###   ########.fr       */
+/*   Updated: 2024/06/27 22:30:54 by jp-de-to         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,7 @@
 
 # define BACKLOG 1024
 
-enum Connexion
+enum status
 {
 	CONNECT,
 	DISCONNECT,
@@ -38,7 +38,7 @@ class HttpServer
 {
     private :
         std::string                 _adressIp;
-		Connexion					_status;
+		status						_status;
         std::string                 _port;
         int                         _serverSocket;
         std::vector<struct pollfd>  _listSockets;
@@ -58,7 +58,7 @@ class HttpServer
 		void serverError(const char *err, int i);
 		void diplayMsgError(const char *err, int i);
 		void freeAndClose();
-		Connexion onRequestReceived(std::vector<struct pollfd>::iterator it)
+		status onRequestReceived(std::vector<struct pollfd>::iterator it)
 };
 
 #endif

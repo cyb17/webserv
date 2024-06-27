@@ -6,7 +6,7 @@
 /*   By: jp-de-to <jp-de-to@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/26 11:35:27 by jp-de-to          #+#    #+#             */
-/*   Updated: 2024/06/27 11:57:27 by jp-de-to         ###   ########.fr       */
+/*   Updated: 2024/06/27 23:27:24 by jp-de-to         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,10 +17,11 @@
 # include <errno.h>
 # include <string.h>
 # include <sys/socket.h>
+# include <sstream>
+# include <fstream>
 # include <string>
 # include <map>
 # include <vector>
-# include "HttpServer.hpp";
 
 enum CODE
 {
@@ -30,13 +31,17 @@ enum CODE
 	C500, //Internal Server Error
 };
 
+std::string firstline[3] = {"method", "url", "http"};
+
 class Request
 {
 	private:
 		int								_socket;
-		bool							_valid;
-		std::map<char *, std::string> 	_firstLine;
-		std::map<char *, std::string>	_headers;
+		int								_start;
+		std::string						_line;
+		int								_responseCode;
+		std::map<std::string, std::string> 	_firstLine;
+		std::map<std::string, std::string>	_headers;
 		std::string						_body;
 		Request();
 	
@@ -45,9 +50,8 @@ class Request
 		~Request();
 
 		//SETTERS
-		Connexion setFirstline();
-		Connexion init();
-		Connexion checkConnexion();
+		int init();
+		int Request::setStructRequest(char *buffer);
 		void diplayMsgError(const char *err);
 };
 

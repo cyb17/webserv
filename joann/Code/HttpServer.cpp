@@ -6,7 +6,7 @@
 /*   By: jp-de-to <jp-de-to@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/24 14:21:37 by joannpdetor       #+#    #+#             */
-/*   Updated: 2024/06/27 12:11:48 by jp-de-to         ###   ########.fr       */
+/*   Updated: 2024/06/27 22:32:37 by jp-de-to         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -121,7 +121,7 @@ std::string HttpServer::build_response()
 // 	}
 // }
 
-Connexion	HttpServer::onRequestReceived(std::vector<struct pollfd>::iterator it)
+status	HttpServer::onRequestReceived(std::vector<struct pollfd>::iterator it)
 {
 	Request msg(it->fd);
 	if (_request.empty() || _request.find(it->fd) != _request.end())
