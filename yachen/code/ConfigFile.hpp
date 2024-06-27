@@ -6,7 +6,7 @@
 /*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/24 16:10:52 by yachen            #+#    #+#             */
-/*   Updated: 2024/06/26 17:17:46 by yachen           ###   ########.fr       */
+/*   Updated: 2024/06/27 14:36:02 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,3 +82,10 @@ class	ConfigFile
 
 
 #endif
+
+// for (size_t i = 0; i < directiveTab.size(); i++)
+		// checkParameter( directiveTab + i );
+	// std::cout << "_____________________directiveTab___________________\n";
+	// for (size_t i = 0; i < directiveTab.size(); i++)
+		// std::cout << directiveTab[i][0]->value << " | " << directiveTab[i][1]->value << '\n';
+	// std::cout << "____________________________________________________\n";
