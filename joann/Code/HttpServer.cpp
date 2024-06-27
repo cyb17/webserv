@@ -6,7 +6,7 @@
 /*   By: jp-de-to <jp-de-to@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/24 14:21:37 by joannpdetor       #+#    #+#             */
-/*   Updated: 2024/06/26 16:45:55 by jp-de-to         ###   ########.fr       */
+/*   Updated: 2024/06/27 12:11:48 by jp-de-to         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,30 +74,63 @@ std::string HttpServer::build_response()
            "Hello, World!");
 }
 
-// bool	HttpServer::onRequestReceived(std::vector<struct pollfd>::iterator it, int disconnect)
+// void	HttpServer::run()
 // {
-// 		Request msg(it->fd);
-// 		ssize_t ret = recv(it->fd, request, 1024, 0);
-// 		if (ret == 0)
-// 			disconnect = true;
-// 		else if (ret < 0)
+// 	while (true)
+// 	{
+// 		int status = poll(_listSockets.data(), _listSockets.size(), -1) == -1;
+// 		if (status == -1)
+// 			diplayMsgError("poll", 1);
+// 		acceptNewConnexion();
+// 		if (_listSockets.size() > 1)
 // 		{
-// 			disconnect = true;
-// 			diplayMsgError("read", 1);
-// 		}
-// 		else
-// 		{
-// 			if (it->revents && POLLOUT)
+// 			for (std::vector<struct pollfd>::iterator it = _listSockets.begin(); it != _listSockets.end(); ++it)
 // 			{
-// 				std::cout << "Request received\n" << request << "\n";
-// 				std::string response = build_response();
-// 				ret = send(it->fd, response.c_str(), response.size(), 0);
-// 				if (ret <= 0)
-// 					disconnect = true;
+// 				_status = CONNECT;
+// 				if (it->revents && POLLIN && it->fd != _serverSocket)
+// 				{
+// 					char request[1024];
+// 					ssize_t ret = recv(it->fd, request, 1024, 0);
+// 					if (ret == 0)
+// 						_status = DISCONNECT;
+// 					else if (ret < 0)
+// 					{
+// 						_status = DISCONNECT;
+// 						diplayMsgError("read", 1);
+// 					}
+// 					else
+// 					{
+// 						if (it->revents && POLLOUT)
+// 						{
+// 							std::cout << "Request received\n" << request << "\n";
+// 							std::string response = build_response();
+// 							ret = send(it->fd, response.c_str(), response.size(), 0);
+// 							if (ret <= 0)
+// 								_status = DISCONNECT;
+// 						}
+// 					}
+// 					if (_status == DISCONNECT)
+// 					{
+// 						close(it->fd);
+// 						it = _listSockets.erase(it); 
+// 						--it;
+// 					}
+// 				}
 // 			}
 // 		}
-// 		return (disconnect);
+// 	}
 // }
+
+Connexion	HttpServer::onRequestReceived(std::vector<struct pollfd>::iterator it)
+{
+	Request msg(it->fd);
+	if (_request.empty() || _request.find(it->fd) != _request.end())
+		_request.insert(std::pair<int, Request>(it->fd, msg));
+	if (!_request[it->fd].init())
+		return (CONNECT);
+	sendResponse(it->fd);
+	return (DISCONNECT);	
+}
 
 void	HttpServer::run()
 {
@@ -111,30 +144,11 @@ void	HttpServer::run()
 		{
 			for (std::vector<struct pollfd>::iterator it = _listSockets.begin(); it != _listSockets.end(); ++it)
 			{
-				bool disconnect = false;
+				_status = CONNECT;
 				if (it->revents && POLLIN && it->fd != _serverSocket)
 				{
-					char request[1024];
-					ssize_t ret = recv(it->fd, request, 1024, 0);
-					if (ret == 0)
-						disconnect = true;
-					else if (ret < 0)
-					{
-						disconnect = true;
-						diplayMsgError("read", 1);
-					}
-					else
-					{
-						if (it->revents && POLLOUT)
-						{
-							std::cout << "Request received\n" << request << "\n";
-							std::string response = build_response();
-							ret = send(it->fd, response.c_str(), response.size(), 0);
-							if (ret <= 0)
-								disconnect = true;
-						}
-					}
-					if (disconnect == true)
+					_status = onRequestReceived(it);
+					if (_status == DISCONNECT)
 					{
 						close(it->fd);
 						it = _listSockets.erase(it); 
