@@ -6,11 +6,11 @@
 #    By: yachen <yachen@student.42.fr>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/06/24 20:03:14 by yachen            #+#    #+#              #
-#    Updated: 2024/06/25 10:45:19 by yachen           ###   ########.fr        #
+#    Updated: 2024/06/28 16:55:02 by yachen           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-NAME = test
+NAME = Server
 
 CC = c++
 
@@ -20,7 +20,7 @@ OBJ_DIR = obj
 
 SRC_DIR = ./
 
-SRC = main.cpp ConfigFile.cpp
+SRC = main.cpp ConfigParser.cpp
 
 OBJ = $(SRC:%.cpp=$(OBJ_DIR)/%.o)
 
@@ -30,9 +30,9 @@ all: $(NAME)
 
 $(NAME): $(OBJ)
 		@echo "\e[32m\n==================================="
-		@echo "\e[32mCompilin teste----------------"
+		@echo "\e[32mCompilin Server----------------"
 		$(CC) $(CFLAGS) $(OBJ) -o $(NAME)
-		@echo "\e[32m---created with success  teste"
+		@echo "\e[32m---created with success  Server"
 		@echo "\e[32m===================================\n\e[0m"
 
 $(OBJ_DIR)/%.o: %.cpp | $(OBJ_DIR)
@@ -43,16 +43,16 @@ $(OBJ_DIR):
 
 clean:
 	@echo "\e[32m\n====================="
-	@echo "\e[32mCleanin teste----"
+	@echo "\e[32mCleanin Server----"
 	@rm -rf $(OBJ_DIR)
-	@echo "\e[32m--- teste Cleaned"
+	@echo "\e[32m--- Server Cleaned"
 	@echo "\e[32m=====================\n\e[0m"
 
 fclean:
 	@echo "\e[32m\n====================="
-	@echo "\e[32mCleanin teste----"
+	@echo "\e[32mCleanin Server----"
 	@rm -rf $(OBJ_DIR)
-	@echo "\e[32m--- teste Cleaned"
+	@echo "\e[32m--- Server Cleaned"
 	@rm -rf $(NAME)
 	@echo "\e[32m=====================\n\e[0m"
 

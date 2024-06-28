@@ -1,0 +1,51 @@
+PARSING INFOS
+=========================
+
+errors fd d'entree
+
+fichier vide 
+fichier ss permission
+dossier
+fichier whitespaces
+
+---
+
+errors brace:
+
+brace ouvert
+brace mal place
+brace non utilise pour server, location, errorPages
+
+---
+
+regles concernant les directives et leur parametres
+
+server: ne peut pas lui passer de parametre
+(directive optionnel: serverName)
+
+-	directive autorisees : 
+
+	-	listen : seulement 1 parametre (numero de port)
+
+	-	host : seulement 1 parametre (IP)
+
+	-	serverName : seulement 1 parametre, caracteres alphabetique et '_' autorisees
+
+	-	clientMaxBodySize : seulement 1 parametre, chiffres autorisees
+
+	-	root : minimum 1 parametre , 2 parametres max (path et index page)
+
+	-	errorPages : minimum 2 parametres (code et path), code errors reconus (404 et 500) 
+
+	-	location : ne peut pas lui passer de parametre
+		-	directives autorisees : root est obligatoire, le reste sont optionnels
+
+			-	root : minimum 1 parametre , 2 parametres max (path et index page)
+
+			-	allowMethods : 3 parametres max (GET, POST, DELETE)
+
+			-	autoindex : 1 parametre max (on ou off)
+
+			-	return : 2 parametre obligatoires (code et path redirection), code reconus(301 et 302)
+
+
