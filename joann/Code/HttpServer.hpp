@@ -6,7 +6,7 @@
 /*   By: jp-de-to <jp-de-to@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/24 13:33:43 by joannpdetor       #+#    #+#             */
-/*   Updated: 2024/06/27 22:30:54 by jp-de-to         ###   ########.fr       */
+/*   Updated: 2024/06/28 11:49:23 by jp-de-to         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@
 # include <vector>
 # include <poll.h>
 # include <fcntl.h>
-# include "Request.hpp";
+# include "Request.hpp"
 
 # define BACKLOG 1024
 
@@ -58,7 +58,7 @@ class HttpServer
 		void serverError(const char *err, int i);
 		void diplayMsgError(const char *err, int i);
 		void freeAndClose();
-		status onRequestReceived(std::vector<struct pollfd>::iterator it)
+		status onRequestReceived(std::vector<struct pollfd>::iterator it);
 };
 
 #endif

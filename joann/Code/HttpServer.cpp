@@ -6,7 +6,7 @@
 /*   By: jp-de-to <jp-de-to@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/24 14:21:37 by joannpdetor       #+#    #+#             */
-/*   Updated: 2024/06/27 22:32:37 by jp-de-to         ###   ########.fr       */
+/*   Updated: 2024/06/28 19:03:28 by jp-de-to         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -87,10 +87,10 @@ std::string HttpServer::build_response()
 // 			for (std::vector<struct pollfd>::iterator it = _listSockets.begin(); it != _listSockets.end(); ++it)
 // 			{
 // 				_status = CONNECT;
-// 				if (it->revents && POLLIN && it->fd != _serverSocket)
+// 				if (it->revents & POLLIN & it->fd != _serverSocket)
 // 				{
 // 					char request[1024];
-// 					ssize_t ret = recv(it->fd, request, 1024, 0);
+// 					ssize_t ret = read(it->fd, request, 1024);
 // 					if (ret == 0)
 // 						_status = DISCONNECT;
 // 					else if (ret < 0)
@@ -100,7 +100,7 @@ std::string HttpServer::build_response()
 // 					}
 // 					else
 // 					{
-// 						if (it->revents && POLLOUT)
+// 						if (it->revents & POLLOUT)
 // 						{
 // 							std::cout << "Request received\n" << request << "\n";
 // 							std::string response = build_response();
@@ -123,12 +123,22 @@ std::string HttpServer::build_response()
 
 status	HttpServer::onRequestReceived(std::vector<struct pollfd>::iterator it)
 {
-	Request msg(it->fd);
-	if (_request.empty() || _request.find(it->fd) != _request.end())
-		_request.insert(std::pair<int, Request>(it->fd, msg));
-	if (!_request[it->fd].init())
+	if (_request.find(it->fd) == _request.end())
+		_request.insert(std::make_pair(it->fd, Request(it->fd)));
+	Request& msg = _request[it->fd];
+	if (!msg.init())
 		return (CONNECT);
-	sendResponse(it->fd);
+	std::cout << "CODE REPONSE = " << msg.getResponseCode() << "\n";
+	msg.printFirstLine();
+	if (it->revents & POLLOUT)
+	{
+		int ret;
+		std::string response = build_response();
+		ret = send(it->fd, response.c_str(), response.size(), 0);
+		if (ret <= 0)
+			_status = DISCONNECT;
+	}
+	// sendResponse(it->fd);
 	return (DISCONNECT);	
 }
 
