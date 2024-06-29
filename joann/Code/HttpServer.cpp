@@ -6,7 +6,7 @@
 /*   By: jp-de-to <jp-de-to@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/24 14:21:37 by joannpdetor       #+#    #+#             */
-/*   Updated: 2024/06/29 12:20:28 by jp-de-to         ###   ########.fr       */
+/*   Updated: 2024/06/29 13:49:42 by jp-de-to         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,7 +48,8 @@ void    HttpServer::init()
 	setNonBlock(_serverSocket);
 	//ajouter le server socket a la liste de sockets
 	pollfd serverFd = {_serverSocket, POLLIN, 0};
-	_listSockets.push_back(serverFd);
+	if (_listSockets.empty())
+		_listSockets.push_back(serverFd);
 }
 
 void	HttpServer::acceptNewConnexion()
@@ -149,14 +150,17 @@ void	HttpServer::run()
 	{
 		int status = poll(_listSockets.data(), _listSockets.size(), -1) == -1;
 		if (status == -1)
+		{
 			diplayMsgError("poll", 1);
+			continue ;
+		}
 		acceptNewConnexion();
 		if (_listSockets.size() > 1)
 		{
 			for (std::vector<struct pollfd>::iterator it = _listSockets.begin(); it != _listSockets.end(); ++it)
 			{
 				_status = CONNECT;
-				if (it->revents && POLLIN && it->fd != _serverSocket)
+				if ((it->revents &POLLIN) && it->fd != _serverSocket)
 				{
 					_status = onRequestReceived(it);
 					if (_status == DISCONNECT)

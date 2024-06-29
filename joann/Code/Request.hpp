@@ -6,7 +6,7 @@
 /*   By: jp-de-to <jp-de-to@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/26 11:35:27 by jp-de-to          #+#    #+#             */
-/*   Updated: 2024/06/29 12:04:31 by jp-de-to         ###   ########.fr       */
+/*   Updated: 2024/06/29 15:16:06 by jp-de-to         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@
 # include <string.h>
 # include <unistd.h>
 # include <sys/socket.h>
-# include <dirent.h> 
+# include <fstream>
 # include <sstream>
 # include <string>
 # include <map>
@@ -51,7 +51,10 @@ class Request
 		//MEMBER FUNCTIONS
 		int parsing();
 		int init();
+
+		//CHECK FUNCTIONS
 		bool checkFirstLine();
+		bool checkHeaders();
 		
 		//SETTERS
 		int setFirstLine();
@@ -62,9 +65,8 @@ class Request
 
 		//PRINT FUNCTIONS
 		void printFirstLine() const;
-		void printHeadears() const;
+		void printHeaders() const;
 		void printMsgError(const char *err);
-		
 };
 
 #endif

@@ -6,7 +6,7 @@
 /*   By: jp-de-to <jp-de-to@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/26 15:36:30 by jp-de-to          #+#    #+#             */
-/*   Updated: 2024/06/29 12:23:19 by jp-de-to         ###   ########.fr       */
+/*   Updated: 2024/06/29 15:54:38 by jp-de-to         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,44 +68,6 @@ int Request::init()
 	return (0);
 }
 
-
-bool Request::checkFirstLine()
-{
-	std::map<std::string,std::string>::iterator it;
-	std::string method[3] = {"GET", "POST", "DELETE"};
-	
-	it = _firstLine.find("method");
-	if (it != _firstLine.end())
-	{
-		int i = 0;
-		while (i < 3)
-		{
-			if (it->second == method[i++])
-				break;
-		}
-		if (i == 3)
-			return (_responseCode = 400, false);
-	}
-	
-	it = _firstLine.find("url");
-	if (it != _firstLine.end())
-	{
-		std::string dirpath = "./ressources" + it->second;
-		std::cout << dirpath << "\n";
-		DIR* dir = opendir(dirpath.c_str());
-		if (dir == NULL)
-			return (_responseCode = 404, false);
-		if (closedir(dir) == 1)
-			return (_responseCode = 500,false);
-	}
-
-	it = _firstLine.find("http");
-	if (it->second != "HTTP/1.1")
-		return (_responseCode = 400, false);
-	return (true);
-}
-
-
 //SETTERS
 
 int Request::setFirstLine()
@@ -146,8 +108,68 @@ int Request::setHeaders()
 		value += word;
 		value += " ";
 	}
+	if (header == "Host:" && value.empty())
+		return (_responseCode = 400);
 	_headers.insert(std::make_pair(header, value));
 	return (0);
+}
+
+// CHECK FUNCTIONS
+
+bool Request::checkFirstLine()
+{
+	std::map<std::string,std::string>::iterator it;
+	
+	//Check method
+	it = _firstLine.find("method");
+	std::string method[3] = {"GET", "POST", "DELETE"};
+	if (it != _firstLine.end())
+	{
+		int i = 0;
+		while (i < 3)
+		{
+			if (it->second == method[i++])
+				break;
+		}
+		if (i == 3)
+			return (_responseCode = 400, false);
+	}
+	//Check url
+	it = _firstLine.find("url");
+	if (it != _firstLine.end())
+	{
+		std::string path = "ressources" + it->second;
+		std::ifstream file(path.c_str());
+		
+		if (!file)
+			return (_responseCode = 404, false);
+		file.close();
+	}
+	//Check version http
+	it = _firstLine.find("http");
+	if (it->second != "HTTP/1.1")
+		return (_responseCode = 400, false);
+	return (true);
+}
+
+bool Request::checkHeaders()
+{
+	std::string headers[3] = {"Host:", "User-Agent:", "Connection:", "Content-Type", "Content-Lenght"};
+	std::map<std::string,std::string>::iterator it;
+	
+    for (it = _firstLine.begin(); it != _firstLine.end(); ++it)
+	{
+        int i = 0;
+		while (i < 3)
+		{
+			if (it->first == headers[i++])
+				break;
+		}
+		if (i == 3)
+			return (false);
+	}
+	
+	return (true);
 }
 
 //GETTERS
@@ -165,7 +187,7 @@ void Request::printFirstLine() const
         std::cout << it->first << ": " << it->second << "\n";
 }
 
-void Request::printHeadears() const
+void Request::printHeaders() const
 {
     std::map<std::string, std::string>::const_iterator it;
 	
