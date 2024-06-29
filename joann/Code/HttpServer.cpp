@@ -6,7 +6,7 @@
 /*   By: jp-de-to <jp-de-to@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/24 14:21:37 by joannpdetor       #+#    #+#             */
-/*   Updated: 2024/06/28 19:03:28 by jp-de-to         ###   ########.fr       */
+/*   Updated: 2024/06/29 12:20:28 by jp-de-to         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -123,10 +123,10 @@ std::string HttpServer::build_response()
 
 status	HttpServer::onRequestReceived(std::vector<struct pollfd>::iterator it)
 {
-	if (_request.find(it->fd) == _request.end())
+	if (_request.empty() || _request.find(it->fd) == _request.end())
 		_request.insert(std::make_pair(it->fd, Request(it->fd)));
 	Request& msg = _request[it->fd];
-	if (!msg.init())
+	if (!msg.parsing())
 		return (CONNECT);
 	std::cout << "CODE REPONSE = " << msg.getResponseCode() << "\n";
 	msg.printFirstLine();
@@ -138,6 +138,7 @@ status	HttpServer::onRequestReceived(std::vector<struct pollfd>::iterator it)
 		if (ret <= 0)
 			_status = DISCONNECT;
 	}
+	_request.erase(it->fd);
 	// sendResponse(it->fd);
 	return (DISCONNECT);	
 }

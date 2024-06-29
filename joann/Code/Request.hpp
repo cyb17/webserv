@@ -6,7 +6,7 @@
 /*   By: jp-de-to <jp-de-to@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/26 11:35:27 by jp-de-to          #+#    #+#             */
-/*   Updated: 2024/06/28 18:13:18 by jp-de-to         ###   ########.fr       */
+/*   Updated: 2024/06/29 12:04:31 by jp-de-to         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,8 +18,8 @@
 # include <string.h>
 # include <unistd.h>
 # include <sys/socket.h>
+# include <dirent.h> 
 # include <sstream>
-# include <fstream>
 # include <string>
 # include <map>
 # include <vector>
@@ -48,15 +48,23 @@ class Request
 		Request(int socket);
 		~Request();
 
-		//SETTERS
+		//MEMBER FUNCTIONS
+		int parsing();
 		int init();
-		int setStructRequest(char *buffer);
-		void diplayMsgError(const char *err);
+		bool checkFirstLine();
+		
+		//SETTERS
+		int setFirstLine();
+		int	setHeaders();
 
 		//GETTERS
 		int getResponseCode();
+
+		//PRINT FUNCTIONS
 		void printFirstLine() const;
 		void printHeadears() const;
+		void printMsgError(const char *err);
+		
 };
 
 #endif
