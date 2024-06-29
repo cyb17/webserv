@@ -6,12 +6,13 @@
 /*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/24 16:27:37 by yachen            #+#    #+#             */
-/*   Updated: 2024/06/28 17:15:07 by yachen           ###   ########.fr       */
+/*   Updated: 2024/06/29 22:01:00 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <iostream>
 #include "ConfigParser.hpp"
+#include "ConfigExtractor.hpp"
 
 int	main( int argc, char** argv )
 {
@@ -25,7 +26,11 @@ int	main( int argc, char** argv )
 		ConfigParser	file( argv[1] );
 		file.fillTokenList();
 		file.analyseTokenList();
-		file.printTokenList();
+		// file.printTokenList();
+
+		ConfigExtractor	extrac;
+		extrac.fillServerList( file.getTokenList() );
+		// extrac.printServerList();
 	}
 	catch (std::invalid_argument& e)
 	{

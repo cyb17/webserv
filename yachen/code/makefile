@@ -6,7 +6,7 @@
 #    By: yachen <yachen@student.42.fr>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/06/24 20:03:14 by yachen            #+#    #+#              #
-#    Updated: 2024/06/28 16:55:02 by yachen           ###   ########.fr        #
+#    Updated: 2024/06/29 20:45:09 by yachen           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -20,7 +20,7 @@ OBJ_DIR = obj
 
 SRC_DIR = ./
 
-SRC = main.cpp ConfigParser.cpp
+SRC = main.cpp ConfigParser.cpp ConfigExtractor.cpp
 
 OBJ = $(SRC:%.cpp=$(OBJ_DIR)/%.o)
 
