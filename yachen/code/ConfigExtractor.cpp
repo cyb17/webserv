@@ -6,7 +6,7 @@
 /*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/29 18:39:42 by yachen            #+#    #+#             */
-/*   Updated: 2024/06/29 22:24:48 by yachen           ###   ########.fr       */
+/*   Updated: 2024/06/30 17:04:55 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,7 @@ Location*				ConfigExtractor::fillLocationData( std::vector<Token*>& tokens )
 		{
 			while (tokens[++i]->type == PARAMETER)
 				location->allowMethods.push_back( tokens[i]->value );
+			--i;
 		}
 		else if (tokens[i]->type == DIRECTIVE && tokens[i]->value == "return")
 		{
@@ -42,7 +43,16 @@ Location*				ConfigExtractor::fillLocationData( std::vector<Token*>& tokens )
 			location->redirection.second = tokens[++i]->value;
 		}
 	}
-	return location;
+	// std::cout << "-------------------\n";
+	// 	std::cout << "autoindex: " << location->autoindex << "\n";
+	// 	std::cout << "root: " << location->root << "\n";
+	// 	if (!location->index.empty())
+	// 		std::cout << "index: " << location->index << "\n";
+	// 	std::cout << "allowMethods: \n";
+	// 	for (size_t j = 0; j < location->allowMethods.size(); ++j)
+	// 		std::cout << location->allowMethods[j] << " ";
+	// 		std::cout << '\n';
+		return location;
 }
 
 std::map<int, std::string>	ConfigExtractor::fillErrorPageData( std::vector<Token*>& tokens )
@@ -78,15 +88,24 @@ Server*					ConfigExtractor::fillServerData( std::vector<Token*>& tokens )
 		else if (tokens[i]->type == DIRECTIVE && tokens[i]->value == "errorPages")
 		{
 			std::vector<Token*>	errorPages;
-			while (tokens[++i]->type != BRACE_CL)
-				errorPages.push_back( *(tokens.begin() + i) );
+			while (tokens[++i]->type != DIRECTIVE)
+			{
+				if (tokens[i]->type == PARAMETER)
+					errorPages.push_back( *(tokens.begin() + i) );
+			}
+			--i;
 			server->errorPages =  fillErrorPageData( errorPages );
 		}
 		else if (tokens[i]->type == DIRECTIVE && tokens[i]->value == "location")
 		{
 			std::vector<Token*>	location;
 			while (tokens[++i]->type != BRACE_CL)
-				location.push_back( *(tokens.begin() + i) );
+			{
+				if (tokens[i]->type == PARAMETER || tokens[i]->type == DIRECTIVE)
+					location.push_back( *(tokens.begin() + i) );
+			}
+			// for (size_t i = 0; i < location.size(); ++i)
+				// std::cout << location[i]->value << '\n';
 			server->location.push_back( fillLocationData( location ) );
 		}
 	}
@@ -122,19 +141,21 @@ std::vector<Server*>&	ConfigExtractor::getServerList()
 	return _serverList;
 }
 
-#include <iostream>
 using std::cout;
 
 void					printLocation( std::vector<Location*>& location )
 {
 	for (size_t i = 0; i < location.size(); ++i)
 	{
+		cout << "---------locations : \n";
 		cout << "autoindex: " << location[i]->autoindex << "\n";
 		cout << "root: " << location[i]->root << "\n";
 		if (!location[i]->index.empty())
 			cout << "index: " << location[i]->index << "\n";
+		cout << "allowMethods: ";
 		for (size_t j = 0; j < location[i]->allowMethods.size(); ++j)
-			cout << "allowMethods: \n" << location[i]->allowMethods[j] << "\n";
+			cout << ' ' << location[i]->allowMethods[j] << " ";
+		cout << '\n';
 		cout << "code redir: " << location[i]->redirection.first << " path: " << location[i]->redirection.second << '\n';
 	}
 }
@@ -153,7 +174,6 @@ void					ConfigExtractor::printServerList()
 		cout << "---------errorPages : \n";
 		for (std::map<int, std::string>::iterator it = _serverList[i]->errorPages.begin(); it != _serverList[i]->errorPages.end(); ++it)
 			cout << "code: " << it->first << " path: " << it->second << '\n';
-		cout << "---------locations : \n";
 		printLocation( _serverList[i]->location );
 	}
 }
