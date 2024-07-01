@@ -6,7 +6,7 @@
 /*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/28 17:27:44 by yachen            #+#    #+#             */
-/*   Updated: 2024/06/29 22:18:27 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/01 11:41:35 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,30 +33,32 @@ typedef struct Server
 	std::string	index;
 	int							clientMaxBodySize;
 	std::map<int, std::string>	errorPages;
-	std::vector<Location*>		location;
+	std::vector<Location>		location;
 }	Server;
 
 class	ConfigExtractor
 {
 	private:
 
-		std::vector<Server*>	_serverList;
+		std::vector<Server>	_serverList;
+		Server				_defaultServer;
 
 		ConfigExtractor( const ConfigExtractor& other );
 		ConfigExtractor&	operator=( const ConfigExtractor& other );
+
+		Location					fillLocationData( std::vector<Token*>& tokens );
+		std::map<int, std::string>	fillErrorPageData( std::vector<Token*>& tokens );
+		Server						fillServerData( std::vector<Token*>& tokens );
 
 	public:
 
 		ConfigExtractor();
 		~ConfigExtractor();
 
-		
-		Location*					fillLocationData( std::vector<Token*>& tokens );
-		std::map<int, std::string>	fillErrorPageData( std::vector<Token*>& tokens );
-		Server*						fillServerData( std::vector<Token*>& tokens );
-		void						fillServerList( std::vector<Token*>& tokens );
-		std::vector<Server*>&		getServerList();
-		void						printServerList();
+		void					fillServerList( std::vector<Token*>& tokens );
+		std::vector<Server>&	getServerList();
+		Server&					getDefaultServer();
+		void					printServerList();
 		
 
 };

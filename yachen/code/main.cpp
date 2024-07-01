@@ -6,7 +6,7 @@
 /*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/24 16:27:37 by yachen            #+#    #+#             */
-/*   Updated: 2024/06/29 22:01:00 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/01 11:46:12 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,11 +26,11 @@ int	main( int argc, char** argv )
 		ConfigParser	file( argv[1] );
 		file.fillTokenList();
 		file.analyseTokenList();
-		// file.printTokenList();
+		file.printTokenList();
 
 		ConfigExtractor	extrac;
 		extrac.fillServerList( file.getTokenList() );
-		// extrac.printServerList();
+		extrac.printServerList();
 	}
 	catch (std::invalid_argument& e)
 	{

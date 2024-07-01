@@ -113,7 +113,7 @@ void	ConfigParser::printTokenList()
 			std::cout << "DIRECTIVE";
 		if (_tokenList[i]->type == PARAMETER)
 			std::cout << "PARAMETER";
-		std::cout << " | " << _tokenList[i]->value << '\n';
+		std::cout << " :	 " << _tokenList[i]->value << '\n';
 	}
 }
 
@@ -314,61 +314,3 @@ void	ConfigParser::checkServer( std::vector<Token*> server )
 		|| tab[6] < 1)
 		throw std::invalid_argument( "directive error in server block" );
 }
-
-
-
-// void ConfigParser::printServerList() const {
-//     for (size_t i = 0; i < _serverList.size(); ++i) {
-//         std::cout << "Server " << i + 1 << ":\n";
-//         const std::map<std::string, std::vector<std::string> >& server = _serverList[i];
-//         for (std::map<std::string, std::vector<std::string> >::const_iterator it = server.begin(); it != server.end(); ++it) {
-//             std::cout << "  " << it->first << " :";
-//             for (std::vector<std::string>::const_iterator paramIt = it->second.begin(); paramIt != it->second.end(); ++paramIt) {
-//                 std::cout << " " << *paramIt;
-//             }
-//             std::cout << "\n";
-//         }
-//         std::cout << "\n";
-//     }
-// }
-
-// void	ConfigParser::fillServerList()
-// {
-// 	// for (size_t i = 0; i < _tokenList.size(); ++i)
-// 	// {
-// 	// 	if ((_tokenList[i])->type == BRACE_OP || (_tokenList[i])->type == BRACE_CL)
-// 	// 	{
-// 	// 		delete	_tokenList[i];
-// 	// 		_tokenList.erase( _tokenList.begin() + i );
-// 	// 		--i;
-// 	// 	}
-// 	// }
-// 	print( _tokenList );
-// 	size_t	size = _tokenList.size();
-// 	for (size_t i = 0; i < size; ++i)
-// 	{
-// 		if (_tokenList[i]->type == DIRECTIVE && _tokenList[i]->value == "server")	// entre dans le block server
-// 		{
-// 			++i;
-// 			std::map<std::string, std::vector<std::string> > server;
-// 			while ( i < size && _tokenList[i]->type == DIRECTIVE && _tokenList[i]->value != "server")
-// 			{
-// 				std::string directive = _tokenList[i++]->value;
-// 				if (directive == "location")
-// 				{
-// 					std::map<std::string, std::vector<std::string> > location;
-					
-// 				}
-// 				else
-// 				{
-// 					std::vector<std::string> parameters;
-// 					while (i < size && _tokenList[i]->type == PARAMETER)
-// 						parameters.push_back( _tokenList[i++]->value );
-// 					server[directive] = parameters; // construit un map de server avec indice (directive name) et valeur (parameters)
-// 				}
-// 			}
-// 			_serverList.push_back( server );
-// 		}
-// 	}
-// 	printServerList();
-// }
