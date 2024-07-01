@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   ConfigParser.cpp                                     :+:      :+:    :+:   */
+/*   ConfigParser.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/24 16:39:38 by yachen            #+#    #+#             */
-/*   Updated: 2024/06/28 16:44:20 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/01 17:24:25 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@ ConfigParser::ConfigParser( char* path ) : _path( path ) {}
 ConfigParser::~ConfigParser()
 {
 	for (size_t i = 0; i < _tokenList.size(); ++i)
-		delete _tokenList[i];  // libere les structures Token.
+		delete _tokenList[i];
 	_tokenList.clear();
 
 }
@@ -29,6 +29,7 @@ ConfigParser::~ConfigParser()
 //								PUBLIC FONCTIONS
 /*************************************************************************************************/
 
+// verifie l'ouverture et la lecture du fichier de config, construire une liste de Tokens du contenu.
 void	ConfigParser::fillTokenList()
 {
 	std::string		line;
@@ -54,8 +55,9 @@ void	ConfigParser::fillTokenList()
 
 void	ConfigParser::analyseTokenList()
 {	
-	checkBrace();
-	checkNumberOfParameter();
+	checkBrace();	// verifie si les accolades sont bien fermees et placees correctement. 
+	checkNumberOfParameter();	// verifie le nb de parametres que contient chaque directives sont corrects.
+	checkPortHost();	// verifie s'il n'y a pas de host:port double.  
 	for (std::vector<Token*>::iterator it = _tokenList.begin(); it != _tokenList.end(); ++it)
 	{
 		if ((*it)->type == DIRECTIVE && (*it)->value == "server")	// entre dans le block server
@@ -66,7 +68,7 @@ void	ConfigParser::analyseTokenList()
 			{
 			 	if ((*it)->type == DIRECTIVE && (*it)->value == "server")
 				{
-					--it;
+					--it;  // ajuste la position de l'iterator pour lire le prochain server block
 					break;
 				}
 				server.push_back( *it );
@@ -79,7 +81,7 @@ void	ConfigParser::analyseTokenList()
 						location.push_back( *it );
 						if ((*it)->type == BRACE_CL)
 						{
-							checkLocation( location );
+							checkLocation( location );	// verifie les directive et les parametres du block location.
 							break;
 						}
 						++it;
@@ -87,7 +89,7 @@ void	ConfigParser::analyseTokenList()
 				}
 				++it;
 			}
-			checkServer( server );
+			checkServer( server );	// verifie le reste des directives et parametres hors location.
 			if (it == _tokenList.end())
 				break;
 		}
@@ -146,7 +148,6 @@ Token*	ConfigParser::makeToken( std::string& value )
 	return token;
 }
 
-// verifie le {} sont correctement placees et fermees
 void	ConfigParser::checkBrace()
 {
 	int	openBrace = 0;
@@ -200,6 +201,21 @@ void	ConfigParser::checkNumberOfParameter()
 			i = j - 1;
 		}
 	}	
+}
+
+void	checkPortHost()
+{
+	std::map<std::string, std::string>	portHost;
+	for (size_t i = 0; i < _tokenList.size(); ++i)
+	{
+		if (_tokenList[i]->type == DIRECTIVE && _tokenList[i]->value == "")
+		std::string	host;
+		std::string	listen;
+		if (_tokenList[i]->type == DIRECTIVE && _tokenList[i]->value == "host")
+			host = _tokenList[i]->value;
+		if (_tokenList[i]->type == DIRECTIVE && _tokenList[i]->value == "listen")
+			listen = _tokenList[i]->value;
+	}
 }
 
 // definie les regles de configuration pour les parametres des directives 
@@ -262,12 +278,11 @@ void	ConfigParser::checkLocation( std::vector<Token*>& location )
 			directive.push_back( location[i++] );
 			while (location[i]->type == PARAMETER)
 				directive.push_back( location[i++] );
-			checkParameterContent( directive );
+			checkParameterContent( directive );	// verifie le contenu de chaque directives.
 			--i;
 		}
 	}
-	// verifie	la presence des directives obligatoires, inconnues ou doublees
-	if (tab[0] != 1 || tab[1] > 1 || tab[2] > 1 || tab[3] > 1)
+	if (tab[0] != 1 || tab[1] > 1 || tab[2] > 1 || tab[3] > 1)	// verifie les directives : obligatoires, non obligatoires, doublees.
 		throw std::invalid_argument( "directive error in location block" );
 }
 
@@ -309,7 +324,6 @@ void	ConfigParser::checkServer( std::vector<Token*> server )
 			--i;
 		}
 	}
-	// verifie	la presence des directives obligatoires, inconnues ou doublees
 	if (tab[0] != 1 || tab[1] != 1 || tab[2] > 1 || tab[3] != 1 || tab[4] != 1 || tab[5] != 1
 		|| tab[6] < 1)
 		throw std::invalid_argument( "directive error in server block" );

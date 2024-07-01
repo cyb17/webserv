@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jp-de-to <jp-de-to@student.42.fr>          +#+  +:+       +#+        */
+/*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/26 15:36:30 by jp-de-to          #+#    #+#             */
-/*   Updated: 2024/06/29 15:54:38 by jp-de-to         ###   ########.fr       */
+/*   Updated: 2024/07/01 15:36:22 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -138,7 +138,7 @@ bool Request::checkFirstLine()
 	it = _firstLine.find("url");
 	if (it != _firstLine.end())
 	{
-		std::string path = "ressources" + it->second;
+		std::string path = it->second;
 		std::ifstream file(path.c_str());
 		
 		if (!file)
@@ -154,7 +154,7 @@ bool Request::checkFirstLine()
 
 bool Request::checkHeaders()
 {
-	std::string headers[3] = {"Host:", "User-Agent:", "Connection:", "Content-Type", "Content-Lenght"};
+	std::string headers[5] = {"Host:", "User-Agent:", "Connection:", "Content-Type:", "Content-Lenght:"};
 	std::map<std::string,std::string>::iterator it;
 	
     for (it = _firstLine.begin(); it != _firstLine.end(); ++it)
