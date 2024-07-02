@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpServer.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jp-de-to <jp-de-to@student.42.fr>          +#+  +:+       +#+        */
+/*   By: joannpdetorres <joannpdetorres@student.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/24 13:33:43 by joannpdetor       #+#    #+#             */
-/*   Updated: 2024/06/29 13:44:10 by jp-de-to         ###   ########.fr       */
+/*   Updated: 2024/07/02 19:28:35 by joannpdetor      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,7 @@
 # include <poll.h>
 # include <fcntl.h>
 # include "Request.hpp"
+# include "ConfigExtractor.hpp"
 
 # define BACKLOG 1024
 
@@ -34,7 +35,42 @@ enum status
 	DISCONNECT,
 };
 
+typedef struct infoServer 
+{
+    Server                      serverConfig;
+    Request                     request;
+} infoServer;
+
 class HttpServer
+{
+    private :
+        std::vector<Server>         _serverConfigLst;
+		status						_status;
+        std::map<int, infoServer>   _infoServerLst;
+        std::vector<struct pollfd>  _listSockets;
+
+    public :
+        
+        HttpServer(std::vector<Server>& extract);
+        ~HttpServer();
+
+        // Setup all servers
+        void setupAllServers();
+
+        // Run all servers
+        void runAllServers();
+
+        void acceptNewConnexion(int serverSocket);
+		void setNonBlock(int socket);
+		
+		std::string build_response();
+		void serverError(const char *err, int i);
+		void diplayMsgError(const char *err, int i);
+		void freeAndClose();
+		status onRequestReceived(std::vector<struct pollfd>::iterator it);
+};
+
+/*class HttpServer
 {
     private :
         std::string                 _adressIp;
@@ -46,6 +82,7 @@ class HttpServer
         addrinfo                    *_res;
 
     public :
+        
         HttpServer(std::string &IpAdress, std::string &port);
         ~HttpServer();
 
@@ -59,6 +96,6 @@ class HttpServer
 		void diplayMsgError(const char *err, int i);
 		void freeAndClose();
 		status onRequestReceived(std::vector<struct pollfd>::iterator it);
-};
+};*/
 
 #endif
