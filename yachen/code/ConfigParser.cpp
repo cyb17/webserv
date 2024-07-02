@@ -6,7 +6,7 @@
 /*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/24 16:39:38 by yachen            #+#    #+#             */
-/*   Updated: 2024/07/01 17:24:25 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/02 11:42:36 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,7 +57,6 @@ void	ConfigParser::analyseTokenList()
 {	
 	checkBrace();	// verifie si les accolades sont bien fermees et placees correctement. 
 	checkNumberOfParameter();	// verifie le nb de parametres que contient chaque directives sont corrects.
-	checkPortHost();	// verifie s'il n'y a pas de host:port double.  
 	for (std::vector<Token*>::iterator it = _tokenList.begin(); it != _tokenList.end(); ++it)
 	{
 		if ((*it)->type == DIRECTIVE && (*it)->value == "server")	// entre dans le block server
@@ -72,7 +71,7 @@ void	ConfigParser::analyseTokenList()
 					break;
 				}
 				server.push_back( *it );
-				if ((*it)->type == DIRECTIVE && (*it)->value == "location")	// entre dans le block location
+				if ((*it)->type == DIRECTIVE && (*it)->value == "location")	// entre dans le block location.
 				{
 					++it;
 					std::vector<Token*> location;
@@ -96,6 +95,7 @@ void	ConfigParser::analyseTokenList()
 		else
 			throw std::invalid_argument( "invalid directive present out of server block" );
 	}
+	checkHostPort();	// verifie s'il n'y a pas plusieurs serveurs avec un host:port identique.  
 }
 
 std::vector<Token*>&	ConfigParser::getTokenList()
@@ -203,18 +203,34 @@ void	ConfigParser::checkNumberOfParameter()
 	}	
 }
 
-void	checkPortHost()
+void	ConfigParser::checkHostPort()
 {
-	std::map<std::string, std::string>	portHost;
-	for (size_t i = 0; i < _tokenList.size(); ++i)
+	std::vector<std::pair<std::string, std::string> >	hostPort;
+	size_t	size = _tokenList.size();
+	for (size_t i = 0; i < size; ++i)
 	{
-		if (_tokenList[i]->type == DIRECTIVE && _tokenList[i]->value == "")
-		std::string	host;
-		std::string	listen;
-		if (_tokenList[i]->type == DIRECTIVE && _tokenList[i]->value == "host")
-			host = _tokenList[i]->value;
-		if (_tokenList[i]->type == DIRECTIVE && _tokenList[i]->value == "listen")
-			listen = _tokenList[i]->value;
+		if (_tokenList[i]->type == DIRECTIVE && _tokenList[i]->value == "server")
+		{
+			std::string	host, port;
+			while (++i < size && !(_tokenList[i]->type == DIRECTIVE && _tokenList[i]->value == "server"))
+			{
+				if (_tokenList[i]->type == DIRECTIVE && _tokenList[i]->value == "host")
+					host = _tokenList[++i]->value;
+				else if (_tokenList[i]->type == DIRECTIVE && _tokenList[i]->value == "listen")
+					port = _tokenList[++i]->value;
+			}
+			hostPort.push_back( std::make_pair( host, port ) );
+			if (i < size && _tokenList[i]->type == DIRECTIVE && _tokenList[i]->value == "server")
+				--i;
+		}
+	}
+	for (size_t i = 0; i < hostPort.size(); ++i)
+	{
+		for (size_t j = i + 1; j < hostPort.size(); ++j)
+		{
+			if (hostPort[i].first == hostPort[j].first && hostPort[i].second == hostPort[j].second)
+				throw std::invalid_argument( "multiple servers have same listen value and host value" );
+		}
 	}
 }
 

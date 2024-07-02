@@ -43,6 +43,7 @@ class	ConfigParser
 		Token*	makeToken( std::string& value );
 		void	checkBrace();
 		void	checkNumberOfParameter();
+		void	checkHostPort();
 		void	checkParameterContent( std::vector<Token*>& directive );
 		void	checkLocation( std::vector<Token*>& location );
 		void	checkServer( std::vector<Token*> server );

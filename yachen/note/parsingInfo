@@ -20,6 +20,8 @@ brace non utilise pour server, location, errorPages
 
 regles concernant les directives et leur parametres
 
+on ne peut pas mettre 2 server qui ont les meme host et listen
+
 server: ne peut pas lui passer de parametre
 (directive optionnel: serverName)
 
