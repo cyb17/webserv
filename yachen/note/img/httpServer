@@ -1,0 +1,17 @@
+objet HttpServer: 
+
+	private:
+
+		-liste de serverConfigData
+		-liste de sockets server initialise
+		-liste de sockets client connectes
+		
+
+		-fonction qui lit les port et host afin d initialiser la liste sockets server
+		-fonction qui accepte une connexion afin de construire la liste sockets client
+		-fonction qui lit et analyse une requete client
+		-fonciton qui retourne une reponse a une requete.
+
+	public:
+
+		-une seule fonction principal run qui demarre le server http
