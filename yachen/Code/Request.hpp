@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jp-de-to <jp-de-to@student.42.fr>          +#+  +:+       +#+        */
+/*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/26 11:35:27 by jp-de-to          #+#    #+#             */
-/*   Updated: 2024/06/29 15:16:06 by jp-de-to         ###   ########.fr       */
+/*   Updated: 2024/07/03 11:52:13 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,41 +32,58 @@ enum CODE
 	C500, //Internal Server Error
 };
 
-class Request
+class	Request
 {
 	private:
-		int									_socket;
-		int									_step;
-		std::string							_line;
-		int									_responseCode;
-		std::map<std::string, std::string> 	_firstLine;
-		std::map<std::string, std::string>	_headers;
-		std::vector<std::string>			_body;
-	
+		
+		std::string	_request;
+			
+		void	checkFirstLine();
+		void	checkHeaders();
+
 	public:
-		Request();
-		Request(int socket);
+
+		Request( char str[], size_t size );
 		~Request();
 
-		//MEMBER FUNCTIONS
-		int parsing();
-		int init();
+		std::string	build_response();
+}
 
-		//CHECK FUNCTIONS
-		bool checkFirstLine();
-		bool checkHeaders();
+// class Request
+// {
+// 	private:
+// 		int									_socket;
+// 		int									_step;
+// 		std::string							_line;
+// 		int									_responseCode;
+// 		std::map<std::string, std::string> 	_firstLine;
+// 		std::map<std::string, std::string>	_headers;
+// 		std::vector<std::string>			_body;
+	
+// 	public:
+// 		Request();
+// 		Request(int socket);
+// 		~Request();
+
+// 		//MEMBER FUNCTIONS
+// 		int parsing();
+// 		int init();
+
+// 		//CHECK FUNCTIONS
+// 		bool checkFirstLine();
+// 		bool checkHeaders();
 		
-		//SETTERS
-		int setFirstLine();
-		int	setHeaders();
+// 		//SETTERS
+// 		int setFirstLine();
+// 		int	setHeaders();
 
-		//GETTERS
-		int getResponseCode();
+// 		//GETTERS
+// 		int getResponseCode();
 
-		//PRINT FUNCTIONS
-		void printFirstLine() const;
-		void printHeaders() const;
-		void printMsgError(const char *err);
-};
+// 		//PRINT FUNCTIONS
+// 		void printFirstLine() const;
+// 		void printHeaders() const;
+// 		void printMsgError(const char *err);
+// };
 
 #endif

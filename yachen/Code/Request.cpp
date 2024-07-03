@@ -3,16 +3,16 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
+/*   By: joannpdetorres <joannpdetorres@student.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/26 15:36:30 by jp-de-to          #+#    #+#             */
-/*   Updated: 2024/07/01 15:36:22 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/02 13:28:03 by joannpdetor      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Request.hpp"
 
-Request::Request() : _socket(-1), _step(0),_line(""), _responseCode(0) {}
+Request::Request() : _socket(-1), _step(0), _line(""), _responseCode(0) {}
 	
 Request::Request(int socket) : _socket(socket), _step(0),_line(""),  _responseCode(0) {}
 
@@ -51,7 +51,7 @@ int Request::parsing()
 
 int Request::init()
 {
-	if (_firstLine.empty() && _step == 1)
+	if (_firstLine.empty() && _line != "\r\n" && _step == 1)
 		return (setFirstLine());
 	if (_step == 2)
 		return (setHeaders());
@@ -134,6 +134,10 @@ bool Request::checkFirstLine()
 		if (i == 3)
 			return (_responseCode = 400, false);
 	}
+	//Check version http
+	it = _firstLine.find("http");
+	if (it->second != "HTTP/1.1")
+		return (_responseCode = 400, false);
 	//Check url
 	it = _firstLine.find("url");
 	if (it != _firstLine.end())
@@ -145,37 +149,24 @@ bool Request::checkFirstLine()
 			return (_responseCode = 404, false);
 		file.close();
 	}
-	//Check version http
-	it = _firstLine.find("http");
-	if (it->second != "HTTP/1.1")
-		return (_responseCode = 400, false);
 	return (true);
 }
 
 bool Request::checkHeaders()
 {
-	std::string headers[5] = {"Host:", "User-Agent:", "Connection:", "Content-Type:", "Content-Lenght:"};
 	std::map<std::string,std::string>::iterator it;
 	
     for (it = _firstLine.begin(); it != _firstLine.end(); ++it)
 	{
-        int i = 0;
-		while (i < 3)
-		{
-			if (it->first == headers[i++])
-				break;
-		}
-		if (i == 3)
-			return (false);
+    	if (it->first == "Host:")
+			return (true);
 	}
-	
-	return (true);
+	return (false);
 }
 
 //GETTERS
 
 int	Request::getResponseCode() { return (_responseCode); }
-
 
 //PRINT FUNCTIONS
 
