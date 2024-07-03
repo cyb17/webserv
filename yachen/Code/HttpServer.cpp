@@ -6,7 +6,7 @@
 /*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/24 14:21:37 by joannpdetor       #+#    #+#             */
-/*   Updated: 2024/07/03 13:57:07 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/03 18:43:09 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 
 HttpServer::HttpServer(std::vector<Server>& extract) : _serverConfigLst(extract), _status(CONNECT)
 {
+	std::cout << _status << '\n';
 	return ; 
 }
 
@@ -45,8 +46,7 @@ void    HttpServer::setupAllServers()
 		if (getaddrinfo(_serverConfigLst[i].host.c_str(), _serverConfigLst[i].listen.c_str() , &hints, &res) != 0)
 			serverError("getaddrinfo", 0);
 
-		int serverSocket;
-   		serverSocket = socket(res->ai_family,res->ai_socktype, res->ai_protocol);
+		int serverSocket = socket(res->ai_family,res->ai_socktype, res->ai_protocol);
    		if (serverSocket == -1)
 			serverError("socket", 1);
 		
@@ -58,25 +58,18 @@ void    HttpServer::setupAllServers()
 
 		pollfd serverFd = {serverSocket, POLLIN, 0};
 		_listSockets.push_back(serverFd);
+		_infoServerLst[serverSocket] = _serverConfigLst[i];
 
-		infoServer	tmp;
-		tmp.serverConfig = _serverConfigLst[i];
-		_infoServerLst.insert(std::make_pair(serverSocket, tmp));
-
-		std::cout << "Listening on " << _infoServerLst[serverSocket].serverConfig.host << ":" << _infoServerLst[serverSocket].serverConfig.listen << "\n";
+		std::cout << "Listening on " << _infoServerLst[serverSocket].host << ":" << _infoServerLst[serverSocket].listen << "\n";
 		freeaddrinfo(res);
 	}
-	// for (unsigned long i = 0; i < _listSockets.size(); ++i)
-	// {
-	// 	close(_listSockets[i].fd);
-	// 	_listSockets.erase(_listSockets.begin());
-	// }
 }
 
 
-void	HttpServer::acceptNewConnexion(int serverSocket, infoServer& infoServeur)
+void	HttpServer::acceptNewConnexion(int serverSocket, Server& info)
 {
 	int clientSocket = accept(serverSocket, NULL, NULL);
+	// std::cout << "client socket: " << clientSocket << '\n';
 	if (clientSocket == -1)
 	{
 		if (errno != EAGAIN && errno != EWOULDBLOCK)
@@ -86,31 +79,30 @@ void	HttpServer::acceptNewConnexion(int serverSocket, infoServer& infoServeur)
 	//setNonBlock(clientSocket);
 	pollfd clientFd = {clientSocket, POLLIN | POLLOUT, 0};
 	_listSockets.push_back(clientFd);
-	infoServer	tmp;
-	tmp.serverConfig = infoServer;
-	_infoClientLst.insert(std::make_pair(clientSocket, tmp));
+	_infoClientLst[clientSocket] = info;	// associe la config serveur au socket client qui sera utile pour analyser la requete client.
 }
 
 
 void	HttpServer::runAllServers()
 {
 	while (true)
-	{
-		int status = poll(_listSockets.data(), _listSockets.size(), -1)
+	{	// surveiller l'ensemble des fd par poll() pour des operation E/S.
+		int status = poll(_listSockets.data(), _listSockets.size(), -1);
 		if (status == -1)
 		{
 			diplayMsgError("poll", 1);
 			continue ;
 		}
+			parcourir tous les structures pollfd (server ET client) pour detecter des evenements.
 		for (std::vector<struct pollfd>::iterator it = _listSockets.begin(); it != _listSockets.end(); ++it)
 		{
 			if (it->revents == 0)
 				continue;
-			std::map<int, infoServer>::iterator inf = _infoServerLst.find(it->fd);
+			std::map<int, Server>::iterator inf = _infoServerLst.find(it->fd);
 			if (inf != _infoServerLst.end())
-				acceptNewConnexion( it->fd, inf->second );
+				acceptNewConnexion( it->fd, inf->second );	// nouvelle connexion a un socket serveur trouve.
 			else
-			{
+			{	// gestion socket client.
 				if (it->revents & POLLERR || it->revents & POLLHUP || it->revents & POLLNVAL)
 				{
 					close(it->fd);
@@ -118,10 +110,10 @@ void	HttpServer::runAllServers()
 					--it;
 					continue;
 				}
-				if (it->revents &POLLIN)	// evenement detecte pour un serveur
+				if (it->revents & POLLIN)	// ya des contenus a lire dans le socket client.
 				{
         		    char buffer[1024];
-        		    ssize_t bytesRead = recv(it->fd, buffer, size, 0);
+        		    ssize_t bytesRead = recv(it->fd, buffer, 1024, 0);
         		    if (bytesRead <= 0)
         		    {
         		        close(it->fd);
@@ -129,15 +121,14 @@ void	HttpServer::runAllServers()
         		        --it;
         		    }
         		    else
-        		    {
-						std::map<int, infoClient>::iterator client = _infoClientLst.find(it->fd);
-        		        Request	request( buffer, size );
-						std::string response = request.build_response();
-						it->events |= POLLOUT;
+        		    {	// analyser la requete et construit la reponse.
+        		        Request	request( buffer, 1024, _infoClientLst[it->fd] );
+						std::string response = request.buildResponse();
+						it->events |= POLLOUT;	// met le socket en attente d'envoyer une reponse.
 						_pendingResponse[it->fd] = response;
         		    }
 				}
-				else if (it->revents & POLLOUT)
+				else if (it->revents & POLLOUT)	//	ya des contenus a ecrire dans le socket client.
 				{
 					std::string	response = _pendingResponse[it->fd];
 					int	bytesent = send( it->fd, response.c_str(), response.size(), 0 );
@@ -149,11 +140,10 @@ void	HttpServer::runAllServers()
                 	    if (response.empty())
                 	    {
                 	        _pendingResponse.erase(it->fd);
-                	        it->events &= ~POLLOUT;
+                	        it->events &= ~POLLOUT;	// desactive l'attente d'envoie de reponse.
                 	    }
-						// std::cout << response << '\n';
-                	}
-				}
+					}
+			  	}
 			}
 		}
 	}

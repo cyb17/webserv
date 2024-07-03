@@ -6,7 +6,7 @@
 /*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/26 11:35:27 by jp-de-to          #+#    #+#             */
-/*   Updated: 2024/07/03 11:52:13 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/03 17:53:46 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,7 @@
 # include <string>
 # include <map>
 # include <vector>
+#include "ConfigExtractor.hpp"
 
 enum CODE
 {
@@ -37,17 +38,21 @@ class	Request
 	private:
 		
 		std::string	_request;
+		Server		_configServer;
+		int			_code;
 			
-		void	checkFirstLine();
-		void	checkHeaders();
+		// bool	isGoodRequestLine( std::string& requestLine );
+		// bool	isGoodHeaders( std::vector<std::string>& headers );
+		// bool	isGoodBody( std::string& body );
+		// void	parseRequest();
 
 	public:
 
-		Request( char str[], size_t size );
+		Request( char str[], size_t size, Server& configServer);
 		~Request();
 
-		std::string	build_response();
-}
+		std::string	buildResponse();
+};
 
 // class Request
 // {

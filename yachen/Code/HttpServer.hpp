@@ -6,7 +6,7 @@
 /*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/24 13:33:43 by joannpdetor       #+#    #+#             */
-/*   Updated: 2024/07/03 13:34:50 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/03 17:51:24 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@
 # include <poll.h>
 # include <fcntl.h>
 # include "Request.hpp"
-# include "../code/ConfigExtractor.hpp"
+# include "ConfigExtractor.hpp"
 
 # define BACKLOG 1024
 
@@ -35,27 +35,15 @@ enum status
 	DISCONNECT,
 };
 
-typedef struct infoServer 
-{
-    Server                      serverConfig;
-    // Request                     request;
-} infoServer;
-
-typedef	struct infoClient
-{
-	Server						serverConfig;
-	Request						request;
-}
-
 class HttpServer
 {
     private :
+        std::vector<Server>         _serverConfigLst;	// configurations des servers.
 		status						_status;
-        std::vector<Server>         _serverConfigLst;// config data des servers.
-        std::vector<struct pollfd>  _listSockets;// sockets clients ET sockets serveurs.
-        std::map<int, infoServer>   _infoServerLst;// indice: fd socket server, valeur: config data du server.
-		std::map<int, infoClient>	_infoClientLst;// indice: fd socket client, valeur: config fata du server correspondant.
-		std::map<int, std::string>	_pendingResponse;// stock les reponse non renvoyer en raison de socket non toute suite dispo.
+        std::vector<struct pollfd>  _listSockets;	// sockets clients ET serveurs.
+        std::map<int, Server>  		_infoServerLst;	// indice: fd socket server, valeur: configuration du server correspondant.
+		std::map<int, Server>		_infoClientLst;	// indice: fd socket client, valeur: configuration du server correspondant.
+		std::map<int, std::string>	_pendingResponse;	// reponses en attente de disponibilite du socket client.
 
     public :
         
@@ -67,7 +55,7 @@ class HttpServer
 
 		void diplayMsgError(const char *err, int i);
 		void serverError(const char *err, int i);
-        void acceptNewConnexion(int serverSocket);
+        void acceptNewConnexion(int serverSocket, Server& info);
 
 		// void setNonBlock(int socket);		
 		// std::string build_response();
