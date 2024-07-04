@@ -6,7 +6,7 @@
 /*   By: jp-de-to <jp-de-to@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/26 11:35:27 by jp-de-to          #+#    #+#             */
-/*   Updated: 2024/06/29 15:16:06 by jp-de-to         ###   ########.fr       */
+/*   Updated: 2024/07/03 15:10:35 by jp-de-to         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,6 +46,7 @@ class Request
 	public:
 		Request();
 		Request(int socket);
+		// Request &operator=(const Request &other);
 		~Request();
 
 		//MEMBER FUNCTIONS

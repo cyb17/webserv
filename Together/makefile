@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: jp-de-to <jp-de-to@student.42.fr>          +#+  +:+       +#+         #
+#    By: joannpdetorres <joannpdetorres@student.    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/06/24 20:03:14 by yachen            #+#    #+#              #
-#    Updated: 2024/07/03 15:02:54 by jp-de-to         ###   ########.fr        #
+#    Updated: 2024/07/02 18:51:20 by joannpdetor      ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 

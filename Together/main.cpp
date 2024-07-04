@@ -1,6 +1,6 @@
 #include "HttpServer.hpp"
-#include "ConfigParser.hpp"
-#include "ConfigExtractor.hpp"
+#include "../code/ConfigParser.hpp"
+#include "../code/ConfigExtractor.hpp"
 
 int	main( int argc, char** argv )
 {
@@ -11,14 +11,13 @@ int	main( int argc, char** argv )
 	}
 	try
 	{
-		std::cout << "WELCOME TO WERSERV!\n\n";
 		ConfigParser	file( argv[1] );
 		file.fillTokenList();
 		file.analyseTokenList();
 
 		ConfigExtractor	extrac;
 		extrac.fillServerList( file.getTokenList() );
-
+		extrac.printServerList();
 
 		HttpServer servers(extrac.getServerList());
 		servers.setupAllServers();

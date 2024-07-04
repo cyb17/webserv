@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpServer.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: joannpdetorres <joannpdetorres@student.    +#+  +:+       +#+        */
+/*   By: jp-de-to <jp-de-to@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/24 13:33:43 by joannpdetor       #+#    #+#             */
-/*   Updated: 2024/07/02 19:28:35 by joannpdetor      ###   ########.fr       */
+/*   Updated: 2024/07/04 10:37:25 by jp-de-to         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,7 +45,6 @@ class HttpServer
 {
     private :
         std::vector<Server>         _serverConfigLst;
-		status						_status;
         std::map<int, infoServer>   _infoServerLst;
         std::vector<struct pollfd>  _listSockets;
 
@@ -59,43 +58,10 @@ class HttpServer
 
         // Run all servers
         void runAllServers();
-
         void acceptNewConnexion(int serverSocket);
-		void setNonBlock(int socket);
-		
-		std::string build_response();
-		void serverError(const char *err, int i);
-		void diplayMsgError(const char *err, int i);
-		void freeAndClose();
 		status onRequestReceived(std::vector<struct pollfd>::iterator it);
+		void displayMsgError(const char *err, int i);
+		std::string build_response();
 };
-
-/*class HttpServer
-{
-    private :
-        std::string                 _adressIp;
-		status						_status;
-        std::string                 _port;
-        int                         _serverSocket;
-        std::vector<struct pollfd>  _listSockets;
-		std::map<int, Request>		_request;
-        addrinfo                    *_res;
-
-    public :
-        
-        HttpServer(std::string &IpAdress, std::string &port);
-        ~HttpServer();
-
-        void init();
-        void run();
-        void acceptNewConnexion();
-		void setNonBlock(int socket);
-		
-		std::string build_response();
-		void serverError(const char *err, int i);
-		void diplayMsgError(const char *err, int i);
-		void freeAndClose();
-		status onRequestReceived(std::vector<struct pollfd>::iterator it);
-};*/
 
 #endif

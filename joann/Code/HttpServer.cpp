@@ -3,16 +3,16 @@
 /*                                                        :::      ::::::::   */
 /*   HttpServer.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: joannpdetorres <joannpdetorres@student.    +#+  +:+       +#+        */
+/*   By: jp-de-to <jp-de-to@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/24 14:21:37 by joannpdetor       #+#    #+#             */
-/*   Updated: 2024/07/02 19:58:20 by joannpdetor      ###   ########.fr       */
+/*   Updated: 2024/07/04 10:45:38 by jp-de-to         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "HttpServer.hpp"
 
-HttpServer::HttpServer(std::vector<Server>& extract) : _serverConfigLst(extract), _status(CONNECT)
+HttpServer::HttpServer(std::vector<Server>& extract) : _serverConfigLst(extract)
 {
 	return ; 
 }
@@ -34,6 +34,7 @@ dans le fichier de configuration :
 
 void    HttpServer::setupAllServers()
 {	
+	std::cout << "Creating Servers...\n";
 	for (unsigned long i = 0; i < _serverConfigLst.size(); ++i)
 	{
 		addrinfo hints;
@@ -43,18 +44,17 @@ void    HttpServer::setupAllServers()
 		hints.ai_socktype = SOCK_STREAM;
 		hints.ai_flags = AI_PASSIVE;
 		if (getaddrinfo(_serverConfigLst[i].host.c_str(), _serverConfigLst[i].listen.c_str() , &hints, &res) != 0)
-			serverError("getaddrinfo", 0);
-
+			displayMsgError("getaddinfo", 0);
 		int serverSocket;
-   		serverSocket = socket(res->ai_family,res->ai_socktype, res->ai_protocol);
-   		if (serverSocket == 0)
-			serverError("socket", 1);
+   		serverSocket = socket(res->ai_family,res->ai_socktype | SOCK_NONBLOCK, res->ai_protocol);
+   		if (serverSocket == -1)
+			displayMsgError("socket", 1);
 
 		if (bind(serverSocket, res->ai_addr, res->ai_addrlen) == -1)
-			serverError("bind", 1);
+			displayMsgError("bind", 1);
 
 		if (listen(serverSocket, BACKLOG) == -1)
-			serverError("listen", 1);
+			displayMsgError("listen", 1);
 
 		pollfd serverFd = {serverSocket, POLLIN, 0};
 		_listSockets.push_back(serverFd);
@@ -66,113 +66,36 @@ void    HttpServer::setupAllServers()
 		std::cout << "Listening on " << _infoServerLst[serverSocket].serverConfig.host << ":" << _infoServerLst[serverSocket].serverConfig.listen << "\n";
 		freeaddrinfo(res);
 	}
-	for (unsigned long i = 0; i < _listSockets.size(); ++i)
-	{
-		close(_listSockets[i].fd);
-		_listSockets.erase(_listSockets.begin());
-	}
 }
 
 
 void	HttpServer::acceptNewConnexion(int serverSocket)
 {
-	int clientSocket = accept(serverSocket, NULL, NULL);
+	struct sockaddr_storage client_addr;
+	socklen_t addr_size = sizeof(client_addr);
+	int clientSocket = accept(serverSocket, (struct sockaddr *)&client_addr,  &addr_size);
 	if (clientSocket == -1)
-	{
-		if (errno != EAGAIN && errno != EWOULDBLOCK)
-			diplayMsgError("accept", 1);
 		return;
-	}
-	//setNonBlock(clientSocket);
 	pollfd clientFd = {clientSocket, POLLIN | POLLOUT, 0};
 	_listSockets.push_back(clientFd);
 }
 
-
-void	HttpServer::runAllServers()
+status	HttpServer::onRequestReceived(std::vector<struct pollfd>::iterator it)
 {
-	while (true)
+
+	char buffer[1024];
+	int	len;
+
+	len = recv(it->fd, buffer, 1024, 0);
+	if (len <= 0)
+		return (DISCONNECT);
+	if (it->revents & POLLOUT)
 	{
-		int status = poll(_listSockets.data(), _listSockets.size(), -1) == -1;
-		if (status == -1)
-		{
-			diplayMsgError("poll", 1);
-			continue ;
-		}
-		for (std::vector<struct pollfd>::iterator it = _listSockets.begin(); it != _listSockets.end(); ++it)
-		{
-			std::map<int, infoServer>::iterator inf;
-			inf = _infoServerLst.find(it->fd);
-			if (inf != _infoServerLst.end())
-				acceptNewConnexion(it->fd);
-			else
-			{
-				if (it->revents &POLLIN)
-				{
-					_status = DISCONNECT;
-					if (_status == DISCONNECT)
-					{
-						close(it->fd);
-						it = _listSockets.erase(it); 
-						--it;
-					}
-				}
-			}
-		}
+		int ret;
+		std::string response = build_response();
+		ret = send(it->fd, response.c_str(), response.size(), 0);
 	}
-}
-
-/*HttpServer::HttpServer(std::string &IpAdress, std::string &port) : _adressIp(IpAdress), _port(port) 
-{
-	_serverSocket = -1;
-	return ; 
-}
-
-HttpServer::~HttpServer() 
-{
-	freeAndClose();
-	return ; 
-}*/
-
-/*void    HttpServer::init()
-{	
-	//recuperer l'adresse IP et le port
-	addrinfo hints;
-	memset(&hints, 0, sizeof(hints));
-	hints.ai_family = AF_INET;
-	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_flags = AI_PASSIVE;
-	if (getaddrinfo(_adressIp.c_str(), _port.c_str() , &hints, &_res) != 0)
-		serverError("getaddrinfo", 0);
-    // creer une socket pour le serveur
-    _serverSocket = socket(_res->ai_family, _res->ai_socktype, _res->ai_protocol);
-    if (_serverSocket == 0)
-		serverError("socket", 1);
-	// lier l'adresse ip et le port au socket
-	if (bind(_serverSocket, _res->ai_addr, _res->ai_addrlen) == -1)
-		serverError("bind", 1);
-	//ecouter via la socket pour détecter des demandes de connexion
-	if (listen(_serverSocket, BACKLOG) == -1)
-		serverError("listen", 1);
-	//mettre la socket en mode non bloquante
-	//setNonBlock(_serverSocket);
-	//ajouter le server socket a la liste de sockets
-	pollfd serverFd = {_serverSocket, POLLIN, 0};
-	_listSockets.push_back(serverFd);
-}
-
-void	HttpServer::acceptNewConnexion()
-{
-	int clientSocket = accept(_serverSocket, NULL, NULL);
-	if (clientSocket == -1)
-	{
-		if (errno != EAGAIN && errno != EWOULDBLOCK)
-			diplayMsgError("accept", 1);
-		return;
-	}
-	setNonBlock(clientSocket);
-	pollfd clientFd = {clientSocket, POLLIN | POLLOUT, 0};
-	_listSockets.push_back(clientFd);
+	return (DISCONNECT);
 }
 
 std::string HttpServer::build_response() 
@@ -184,76 +107,41 @@ std::string HttpServer::build_response()
            "Hello, World!");
 }
 
-status	HttpServer::onRequestReceived(std::vector<struct pollfd>::iterator it)
+void	HttpServer::runAllServers()
 {
-	if (_request.empty() || _request.find(it->fd) == _request.end())
-		_request.insert(std::make_pair(it->fd, Request(it->fd)));
-	Request& msg = _request[it->fd];
-	if (!msg.parsing())
-		return (CONNECT);
-	std::cout << "CODE REPONSE = " << msg.getResponseCode() << "\n";
-	msg.printFirstLine();
-	if (it->revents & POLLOUT)
-	{
-		int ret;
-		std::string response = build_response();
-		ret = send(it->fd, response.c_str(), response.size(), 0);
-		if (ret <= 0)
-			_status = DISCONNECT;
-	}
-	_request.erase(it->fd);
-	// sendResponse(it->fd);
-	return (DISCONNECT);
-}*/
-
-/*void	HttpServer::run()
-{
+	int nb_server = _listSockets.size();
 	while (true)
 	{
-		int status = poll(_listSockets.data(), _listSockets.size(), -1) == -1;
-		if (status == -1)
+		int pollStatus = poll(_listSockets.data(), _listSockets.size(), -1);
+		if (pollStatus == -1)
+			displayMsgError("poll", 1);
+		else
 		{
-			diplayMsgError("poll", 1);
-			continue ;
-		}
-		acceptNewConnexion();
-		if (_listSockets.size() > 1)
-		{
-			for (std::vector<struct pollfd>::iterator it = _listSockets.begin(); it != _listSockets.end(); ++it)
+			for (int i = 0; i < nb_server; ++i)
+				acceptNewConnexion(_listSockets[i].fd);
+			for (std::vector<struct pollfd>::iterator it = _listSockets.begin() + nb_server; it != _listSockets.end(); ++it)
 			{
-				_status = CONNECT;
-				if ((it->revents &POLLIN) && it->fd != _serverSocket)
+				status client = CONNECT;
+				if (it->revents == 0)
+					continue;
+				if (it->revents & POLLERR || it->revents & POLLHUP || it->revents & POLLNVAL)
+					client = DISCONNECT;
+				else if (it->revents & POLLIN)
+					client = onRequestReceived(it);
+				if (client == DISCONNECT)
 				{
-					_status = onRequestReceived(it);
-					if (_status == DISCONNECT)
-					{
-						close(it->fd);
-						it = _listSockets.erase(it); 
-						--it;
-					}
+					close(it->fd);
+					it = _listSockets.erase(it); 
+					--it;
 				}
 			}
 		}
 	}
-}*/
-
-/*void	HttpServer::setNonBlock(int socket)
-{
-	int flags = fcntl(socket, F_GETFL, 0);
-	if (flags == -1)
-		serverError("fcntl", 1);
-    if (fcntl(socket, F_SETFL, flags | O_NONBLOCK) == -1)
-		serverError("fcntl", 1);
-}*/
+}
 
 //Errors
 
-void	HttpServer::serverError(const char *err, int i)
-{
-	diplayMsgError(err, i);
-}
-
-void	HttpServer::diplayMsgError(const char *err, int i)
+void	HttpServer::displayMsgError(const char *err, int i)
 {
 	if (!i)
 		std::cerr << "ERROR : " << err << " => " << gai_strerror(errno) << "\n";
@@ -261,58 +149,3 @@ void	HttpServer::diplayMsgError(const char *err, int i)
 		std::cerr << "ERROR : " << err << " => " << strerror(errno) << "\n";
 }
 
-/*void	HttpServer::freeAndClose()
-{
-	if (_serverSocket != -1)
-		close(_serverSocket);
-	if (_res)
-		freeaddrinfo(_res);
-}*/
-
-
-// void	HttpServer::run()
-// {
-// 	while (true)
-// 	{
-// 		int status = poll(_listSockets.data(), _listSockets.size(), -1) == -1;
-// 		if (status == -1)
-// 			diplayMsgError("poll", 1);
-// 		acceptNewConnexion();
-// 		if (_listSockets.size() > 1)
-// 		{
-// 			for (std::vector<struct pollfd>::iterator it = _listSockets.begin(); it != _listSockets.end(); ++it)
-// 			{
-// 				_status = CONNECT;
-// 				if (it->revents & POLLIN & it->fd != _serverSocket)
-// 				{
-// 					char request[1024];
-// 					ssize_t ret = read(it->fd, request, 1024);
-// 					if (ret == 0)
-// 						_status = DISCONNECT;
-// 					else if (ret < 0)
-// 					{
-// 						_status = DISCONNECT;
-// 						diplayMsgError("read", 1);
-// 					}
-// 					else
-// 					{
-// 						if (it->revents & POLLOUT)
-// 						{
-// 							std::cout << "Request received\n" << request << "\n";
-// 							std::string response = build_response();
-// 							ret = send(it->fd, response.c_str(), response.size(), 0);
-// 							if (ret <= 0)
-// 								_status = DISCONNECT;
-// 						}
-// 					}
-// 					if (_status == DISCONNECT)
-// 					{
-// 						close(it->fd);
-// 						it = _listSockets.erase(it); 
-// 						--it;
-// 					}
-// 				}
-// 			}
-// 		}
-// 	}
-// }
