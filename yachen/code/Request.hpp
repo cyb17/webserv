@@ -6,7 +6,7 @@
 /*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/26 11:35:27 by jp-de-to          #+#    #+#             */
-/*   Updated: 2024/07/03 17:53:46 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/04 14:23:36 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,15 @@ enum CODE
 	C500, //Internal Server Error
 };
 
+typename struct ReponseInfo
+{
+	std::string	methods;
+	std::string path;
+	std::string version;
+	std::vector<string>	body;
+
+} ReponseInfo;
+
 class	Request
 {
 	private:
@@ -41,10 +50,10 @@ class	Request
 		Server		_configServer;
 		int			_code;
 			
-		// bool	isGoodRequestLine( std::string& requestLine );
-		// bool	isGoodHeaders( std::vector<std::string>& headers );
-		// bool	isGoodBody( std::string& body );
-		// void	parseRequest();
+		bool	isGoodRequestLine( std::string& requestLine, ReponseInfo& info );
+		bool	isGoodHeaders( std::vector<std::string>& headers );
+		bool	isGoodBody( ReponseInfo );
+		void	parseRequest( ReponseInfo );
 
 	public:
 
@@ -53,42 +62,5 @@ class	Request
 
 		std::string	buildResponse();
 };
-
-// class Request
-// {
-// 	private:
-// 		int									_socket;
-// 		int									_step;
-// 		std::string							_line;
-// 		int									_responseCode;
-// 		std::map<std::string, std::string> 	_firstLine;
-// 		std::map<std::string, std::string>	_headers;
-// 		std::vector<std::string>			_body;
-	
-// 	public:
-// 		Request();
-// 		Request(int socket);
-// 		~Request();
-
-// 		//MEMBER FUNCTIONS
-// 		int parsing();
-// 		int init();
-
-// 		//CHECK FUNCTIONS
-// 		bool checkFirstLine();
-// 		bool checkHeaders();
-		
-// 		//SETTERS
-// 		int setFirstLine();
-// 		int	setHeaders();
-
-// 		//GETTERS
-// 		int getResponseCode();
-
-// 		//PRINT FUNCTIONS
-// 		void printFirstLine() const;
-// 		void printHeaders() const;
-// 		void printMsgError(const char *err);
-// };
 
 #endif
