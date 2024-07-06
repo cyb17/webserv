@@ -6,7 +6,7 @@
 /*   By: jp-de-to <jp-de-to@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/24 13:33:43 by joannpdetor       #+#    #+#             */
-/*   Updated: 2024/07/04 11:26:05 by jp-de-to         ###   ########.fr       */
+/*   Updated: 2024/07/06 08:27:44 by jp-de-to         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,6 +43,7 @@ class HttpServer
         std::vector<struct pollfd>  _listSockets;	// sockets clients ET serveurs.
         std::map<int, Server>  		_infoServerLst;	// indice: fd socket server, valeur: configuration du server correspondant.
 		std::map<int, Server>		_infoClientLst;	// indice: fd socket client, valeur: configuration du server correspondant.
+		std::map<int, Request>		_requestLst; // ind: fd socket client, val: requete du client
 		// std::map<int, std::string>	_pendingResponse;	// reponses en attente de disponibilite du socket client.
 
     public :

@@ -6,7 +6,7 @@
 /*   By: jp-de-to <jp-de-to@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/24 14:21:37 by joannpdetor       #+#    #+#             */
-/*   Updated: 2024/07/04 18:06:21 by jp-de-to         ###   ########.fr       */
+/*   Updated: 2024/07/06 14:05:26 by jp-de-to         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,23 +86,42 @@ status	HttpServer::onRequestReceived(std::vector<struct pollfd>::iterator it)
 
 	char buffer[1024];
 	int	len;
-
 	len = recv(it->fd, buffer, 1024, 0);
 	if (len <= 0)
 		return (DISCONNECT);
-	std::string str(buffer);
-	Request	request(str, _infoClientLst[it->fd]);
-	std::string response = request.buildResponse();
-	it->events |= POLLOUT;	// met le socket en attente d'envoyer une reponse.
+	buffer[len] = '\0';
+	std::string tmp(buffer);
+	// std::cout << "on request received: \n"<< buffer << "\n";
+	if (_requestLst.empty() || _requestLst.find(it->fd) == _requestLst.end())
+	{	
+		Request request(_infoClientLst[it->fd]);
+		_requestLst.insert(std::make_pair(it->fd, request));
+	}
+	// Request	request(str, _infoClientLst[it->fd]);
+	std::string response =  _requestLst[it->fd].buildResponse(tmp);
+	std::cout << "step = " <<  _requestLst[it->fd].getStep() << "; code = " <<  _requestLst[it->fd].getCode() << "\n";
+	if ( _requestLst[it->fd].getStep() != complete)
+	{
+		time_t now;
+		double secs;
+		time(&now);
+		secs = difftime(now, _requestLst[it->fd].getStartTime());
+		if (secs > 120)
+		{
+			std::cout << "Error: the customer request takes too long to finalize\n";
+			_requestLst.erase(it->fd);
+			return (DISCONNECT);
+		}
+		// std::cout << "Request duration: " << secs << "\n";
+		return (CONNECT);
+	}
+	// it->events |= POLLOUT;	// met le socket en attente d'envoyer une reponse.
 	if (it->revents & POLLOUT)
 	{
 		// std::string	response = _pendingResponse[it->fd];
 		int	bytesent = send( it->fd, response.c_str(), response.size(), 0 );
 		if (bytesent == -1)
-		{
 			diplayMsgError( "send" , 1 );
-			return (DISCONNECT);
-		}
 		else
 	   	{
 	   	    response.erase(0, bytesent);
@@ -110,6 +129,7 @@ status	HttpServer::onRequestReceived(std::vector<struct pollfd>::iterator it)
 	   	        it->events &= ~POLLOUT;	// desactive l'attente d'envoie de reponse.
 		}
 	}
+	_requestLst.erase(it->fd);
 	return (DISCONNECT);
 }
 

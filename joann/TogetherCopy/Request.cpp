@@ -6,15 +6,19 @@
 /*   By: jp-de-to <jp-de-to@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/26 15:36:30 by jp-de-to          #+#    #+#             */
-/*   Updated: 2024/07/04 18:24:22 by jp-de-to         ###   ########.fr       */
+/*   Updated: 2024/07/06 14:12:35 by jp-de-to         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Request.hpp"
 
-Request::Request(std::string requestLine, Server& configServer) : _request(requestLine), _configServer( configServer ), _code( 0 )
+Request::Request() { }
+
+Request::Request( Server& configServer) : _configServer( configServer ), _code(200), _step(firstLine)
 {
-	infos.bodyLenghtRequest = 0;
+	time(&_startTime);
+	_infos.bodyLengthRequest = -1;
+	_infos.bodyLen = 0;
 	// std::cout << _code << '\n';
 }
 
@@ -23,62 +27,77 @@ Request::~Request() {}
 void	Request::printInfos()
 {
 	std::cout << "REQUEST INFOS\n\n";
-	std::cout << "* method = " << infos.method << "\n";
-	std::cout << "* path = " << infos.path << "\n";
-	std::cout << "* version = " << infos.version << "\n";
-	std::cout << "* host = " << infos.host << "\n";
-	for (unsigned long i = 0; i << infos.body.size(); ++i)
+	std::cout << "* method = " << _infos.method << "\n";
+	std::cout << "* path = " << _infos.path << "\n";
+	std::cout << "* version = " << _infos.version << "\n";
+	std::cout << "* host = " << _infos.host << "\n";
+	for (unsigned long i = 0; i << _infos.body.size(); ++i)
 	{
 		if (i == 0)
-			std::cout << "* body = " << infos.body[i] << "\n";
+			std::cout << "* body = " << _infos.body[i] << "\n";
 		else
-			std::cout << "         " << infos.body[i] << "\n";
+			std::cout << "         " << _infos.body[i] << "\n";
 	}
 }
 
-std::string	Request::buildResponse()
+std::string	Request::buildResponse(std::string& requestLine)
 {
-	parseRequest(_request);
-	std::cout << "Code = " << getCode() << "\n\n";
-	printInfos();
+	if (parseRequest(requestLine) != complete)
+		return ("not complete");
+	// printInfos();
 	return "hello world";
 }
 
-void	Request::parseRequest( std::string& requestLine)
+Step	Request::parseRequest( std::string& requestLine)
 {
 	std::istringstream	request(requestLine);
 	std::string line;
 	
-	if (std::getline(request, line))
+	// std::cout << "\nparse request:\n";
+	if (_step == firstLine && std::getline(request, line))
 	{
-		std::cout << "first line: " << line << "\n";
+		if (line == "\r")
+			return (_step);
 		if (isGoodRequestLine( line ) == false)
-			return;
+			return (_step = complete);
+		_step = headers;
 	}
-	std::vector<std::string>	headers;
-	while (std::getline(request,line) && line != "\r")
-		headers.push_back(line);
-	if (isGoodHeaders(headers) == false)
-		return;
-	if (infos.bodyLenghtRequest > 0)
+	if (_step == headers)
 	{
-		int	len = 0;
-		while (std::getline(request, line) && line != "\0")
+		while (std::getline(request,line) && line != "\r")
+			_headersTmp.push_back(line);
+		if (_headersTmp.empty() && line == "\r")
+			return (_code = 400, _step = complete);
+		if (line == "\r")
+			_step = body;
+		if (_step == body)
 		{
-			len += line.size();
-			std::string::iterator it = line.end() - 1;
-			if (*it == '\n')
-				len++;
-			infos.body.push_back(line);
-			if (len > infos.bodyLenghtRequest || len > 1024)
-			{
-				_code = 400;
-				return;
-			}
-			else if (len == infos.bodyLenghtRequest)
-				break ;
+			if (isGoodHeaders(_headersTmp) == false)
+				return (_step = complete);
+			if (_infos.method != "POST")
+				return (_step = complete);
 		}
 	}
+	if (_step == body)
+	{
+		if (_infos.bodyLengthRequest <= 0)
+			return (_code = 400, _step = complete);
+		while (std::getline(request, line))
+		{
+			_infos.bodyLen += line.size();
+			std::string::iterator it = line.end() - 1;
+			if (*it == '\r')
+				_infos.bodyLen++;
+			if (_infos.body.empty() && line == "\r")
+				return (_code = 400, _step = complete);
+			_infos.body.push_back(line);
+			if (_infos.bodyLen > _infos.bodyLengthRequest || _infos.bodyLen > _configServer.clientMaxBodySize)
+				return (_code = 400, _step = complete);
+			else if (_infos.bodyLen== _infos.bodyLengthRequest)
+				return (_step = complete);
+		}
+	}
+	return (_step);
 }
 
 bool	Request::isGoodRequestLine( std::string& requestLine)
@@ -93,12 +112,11 @@ bool	Request::isGoodRequestLine( std::string& requestLine)
 		|| lineInfo[2] != "HTTP/1.1")
 	{
 		_code = 400;
-		std::cout << "code error\n";
 		return false;
 	}
-	infos.method = lineInfo[0];
-	infos.path = lineInfo[1];
-	infos.version = lineInfo[2];
+	_infos.method = lineInfo[0];
+	_infos.path = lineInfo[1];
+	_infos.version = lineInfo[2];
 	return true;
 }
 
@@ -114,15 +132,16 @@ bool	Request::isGoodHeaders( std::vector<std::string>& headers )
 		std::string word;
 		while (iss >> word)
 			line.push_back(word);
+		std::cout << "headers size = " << line.size(); 
 		if (line[0] == "Host:")
 		{
 			if (line.size() != 2)
 				return (_code = 400, false);
-			infos.host = word;
+			_infos.host = word;
 		}
-		else if (line[0] == "Content-Type:" && infos.method == "POST" )
+		else if (line[0] == "Content-Type:" && _infos.method == "POST" )
 			contentType = 1;
-		else if (contentType && line[0] == "Content-Lenght:")
+		else if (contentType && line[0] == "Content-Length:")
 		{
 			if (line.size() != 2)
 				return (_code = 400, false);
@@ -131,20 +150,19 @@ bool	Request::isGoodHeaders( std::vector<std::string>& headers )
 				if (!isdigit(word[i]) || (line[1].size() == 1 && word[0] == '0'))
 					return (_code = 400, false);
 			}
-			infos.bodyLenghtRequest = atoi(word.c_str());
+			_infos.bodyLengthRequest = atoi(word.c_str());
 		}
 	}
-	if (infos.host.empty())
+	if (_infos.host.empty())
 		return (_code = 400, false);
 	return (true);
 }
 
-int		Request::getCode()
-{
-	return (_code);
-}
-
-// Request::Request() : _socket(-1), _step(0), _line(""), _responseCode(0) {}
+int				Request::getCode() { return (_code); }
+Step			Request::getStep() { return (_step); }
+time_t			Request::getStartTime() { return (_startTime); }
+ResponseInfos	Request::getResponseInfos() { return (_infos); }
+// RequeInResponseInfosst::Request() : _socket(-1), _step(0), _line(""), _responseCode(0) {}
 	
 // Request::Request(int socket) : _socket(socket), _step(0),_line(""),  _responseCode(0) {}
 

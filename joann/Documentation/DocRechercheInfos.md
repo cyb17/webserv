@@ -96,4 +96,31 @@ Les 2 types principaux sont: <br/>
 		Accept-Language: en-US <br/>
 		Accept-Encoding: gzip, deflate <br/>
 		Connection: keep-alive <br/>
+	
+	* **Methodes:**
 
+		* Action que l'on souhaite realiser a la ressource indiquee, appelee aussi verbes HTTP
+
+		* 9 methodes https existantes: GET, HEAD, POST, PUT, DELETE, CONNECT, OPTIONS, TRACE, PATCH
+
+		* Infos sur les 3 methodes indiquees dans le sujet (GET, POST, DELETE)
+
+			* GET
+				* Demande une representation de la ressource specifiee
+				* Structure:
+					* ligne de requete
+					* en-tetes obligatoire: Host
+					* pas de body
+			
+			* POST
+				* Envoie des donnees au serveur
+				* Structure :
+					* ligne de requete
+					* en-tetes obligatoires: Host, Content-Type, Content-Length
+					* body
+			
+			* DELETE
+				* Supprime la ressource indiquee
+				* Structure :
+					* ligne de requetes
+					* en-tetes obligatoire: Host
