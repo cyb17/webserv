@@ -6,7 +6,7 @@
 /*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/26 11:35:27 by jp-de-to          #+#    #+#             */
-/*   Updated: 2024/07/06 17:10:11 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/06 14:55:57 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@
 # include <vector>
 # include <cstdlib> 
 # include <cctype>
-# include <ctime> 
+# include <ctime>
 # include <iomanip>
 # include "ConfigExtractor.hpp"
 
@@ -34,27 +34,16 @@ enum CODE
 	C200, //OK
 	C400, //bad request
 	C404, //not found
-	C405, //Method Not Allowed
-	C408, //Request Timeout
 	C500, //Internal Server Error
 };
-
-enum Step
-{
-	firstLine,
-	headers,
-	body,
-	complete,
-};
-
+ 
 typedef struct ResponseInfos
 {
 	std::string	method;
 	std::string path;
 	std::string version;
 	std::string host;
-	int bodyLengthRequest;
-	int	bodyLen;
+	int bodyLenghtRequest;
 	std::vector<std::string> body;
 } ResponsesInfos;
 
@@ -62,32 +51,26 @@ class	Request
 {
 	private:
 		
-		Server						_configServer;
-		int							_code;
-		Step						_step;
-		time_t						_startTime;
-		ResponseInfos 				_infos;
-		std::vector<std::string>	_headersTmp;
+		std::string	_request;
+		Server		_configServer;
+		int			_code;
+		ResponseInfos _infos;
 			
-		bool	isGoodRequestLine( std::string& requestLine );
-		bool	isGoodHeaders( std::vector<std::string>& headers );
+		bool	isGoodRequestLine(std::string& requestLine);
+		bool	isGoodHeaders(std::vector<std::string>& headers);
 		bool	isGoodBody( std::string& body );
-		Step	parseRequest( std::string& requestLine);
+		void	parseRequest( std::string& requestLine);
+		void	printInfos();
+		
+		std::string	build();
+		// int		getCode();
 
 	public:
 
-		Request();
-		Request( Server& configServer );
+		Request(std::string requestLine, Server& configServer);
 		~Request();
 
-		void		printInfos();
-		std::string	buildResponse( std::string& requestLine );
-
-		//GETTERS
-		Step			getStep();
-		int				getCode();
-		time_t			getStartTime();
-		ResponseInfos	getResponseInfos();
+		std::string	buildResponse();
 };
 
 // class Request

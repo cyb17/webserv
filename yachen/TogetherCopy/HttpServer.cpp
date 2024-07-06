@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpServer.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
+/*   By: jp-de-to <jp-de-to@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/24 14:21:37 by joannpdetor       #+#    #+#             */
-/*   Updated: 2024/07/06 17:45:53 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/04 18:06:21 by jp-de-to         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,6 +64,7 @@ void    HttpServer::setupAllServers()
 	}
 }
 
+
 void	HttpServer::acceptNewConnexion(int serverSocket, Server& info)
 {
 	int clientSocket = accept(serverSocket, NULL, NULL);
@@ -73,50 +74,42 @@ void	HttpServer::acceptNewConnexion(int serverSocket, Server& info)
 			diplayMsgError("accept", 1);
 		return;
 	}
+	//setNonBlock(clientSocket);
 	pollfd clientFd = {clientSocket, POLLIN | POLLOUT, 0};
 	_listSockets.push_back(clientFd);
 	_infoClientLst[clientSocket] = info;	// associe la config serveur au socket client qui sera utile pour analyser la requete client.
 }
 
+
 status	HttpServer::onRequestReceived(std::vector<struct pollfd>::iterator it)
 {
-	int	len;
+
 	char buffer[1024];
-	len = recv(it->fd, buffer, 1023, 0);
+	int	len;
+
+	len = recv(it->fd, buffer, 1024, 0);
 	if (len <= 0)
 		return (DISCONNECT);
-	buffer[len] = '\0';
-	std::string tmp(buffer);
-	if (_requestLst.empty() || _requestLst.find(it->fd) == _requestLst.end())
-	{	
-		Request request(_infoClientLst[it->fd]);
-		_requestLst.insert(std::make_pair(it->fd, request));
-	}
-	std::string response =  _requestLst[it->fd].buildResponse(tmp);
-	
-	if ( _requestLst[it->fd].getStep() != complete)
-	{
-		time_t now;
-		double secs;
-		time(&now);
-		secs = difftime(now, _requestLst[it->fd].getStartTime());
-		if (secs > 120)
-		{
-			std::cout << "Error: the customer request takes too long time to finalize\n";
-			_requestLst.erase(it->fd);
-			return (DISCONNECT);
-		}
-		return (CONNECT);
-	}
-
+	std::string str(buffer);
+	Request	request(str, _infoClientLst[it->fd]);
+	std::string response = request.buildResponse();
+	it->events |= POLLOUT;	// met le socket en attente d'envoyer une reponse.
 	if (it->revents & POLLOUT)
 	{
-		std::cout << "1\n";
+		// std::string	response = _pendingResponse[it->fd];
 		int	bytesent = send( it->fd, response.c_str(), response.size(), 0 );
 		if (bytesent == -1)
+		{
 			diplayMsgError( "send" , 1 );
+			return (DISCONNECT);
+		}
+		else
+	   	{
+	   	    response.erase(0, bytesent);
+	   	    if (response.empty())
+	   	        it->events &= ~POLLOUT;	// desactive l'attente d'envoie de reponse.
+		}
 	}
-	_requestLst.erase(it->fd);
 	return (DISCONNECT);
 }
 
