@@ -6,7 +6,7 @@
 /*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/26 15:36:30 by jp-de-to          #+#    #+#             */
-/*   Updated: 2024/07/06 17:51:31 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/06 17:58:05 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,8 +25,8 @@ Request::~Request() {}
 
 void	Request::printInfos()
 {
-	std::cout << "Code = " << _code << "\n\n";
 	std::cout << "REQUEST INFOS\n\n";
+	std::cout << "Code = " << _code << "\n";
 	std::cout << "* method = " << _infos.method << "\n";
 	std::cout << "* path = " << _infos.path << "\n";
 	std::cout << "* version = " << _infos.version << "\n";
@@ -39,6 +39,7 @@ void	Request::printInfos()
 		else
 			std::cout << "         " << _infos.body[i] << "\n";
 	}
+	std::cout << "\n\n";
 }
 
 std::string getGMTDate()
@@ -52,15 +53,14 @@ std::string getGMTDate()
 	timeInfos = gmtime( &currentTime );
 	std::stringstream	ss;
 	
-	ss << "Date: "
-       << days[timeInfos->tm_wday] << ", "
-       << std::setfill('0') << std::setw(2) << timeInfos->tm_mday << " "
-       << months[timeInfos->tm_mon] << " "
-       << (timeInfos->tm_year + 1900) << " "
-       << std::setfill('0') << std::setw(2) << timeInfos->tm_hour << ":"
-       << std::setfill('0') << std::setw(2) << timeInfos->tm_min << ":"
-       << std::setfill('0') << std::setw(2) << timeInfos->tm_sec
-       << " GMT\r\n";
+    ss  << days[timeInfos->tm_wday] << ", "
+    	<< std::setfill('0') << std::setw(2) << timeInfos->tm_mday << " "
+    	<< months[timeInfos->tm_mon] << " "
+    	<< (timeInfos->tm_year + 1900) << " "
+    	<< std::setfill('0') << std::setw(2) << timeInfos->tm_hour << ":"
+    	<< std::setfill('0') << std::setw(2) << timeInfos->tm_min << ":"
+    	<< std::setfill('0') << std::setw(2) << timeInfos->tm_sec
+    	<< " GMT";
 	return ss.str();
 }
 
@@ -70,14 +70,14 @@ std::string	Request::buildResponse( std::string& requestLine )
 		return ("not complete");
 	printInfos();
 	std::string response;
-	std::string date = getGMTDate();
+	std::string date = "Date: " + getGMTDate() + "\r\n";
 	std::string server = "Server: " + _configServer.serverName + "\r\n";
 	// if (_code == 400)
-		response = "HTTP/1.1 400 Bad Request\r\n" + date + server + "Content-Type: text/plain\r\nContent-Length: 13\r\n\r\nbody...";
+		response = "HTTP/1.1 200 OK\r\n" + date + server + "Content-Type: text/plain\r\nContent-Length: 13\r\n\r\nbody...";
 	std::cout << response << '\n';
 	std::string response2;
 	response2 =	"HTTP/1.1 200 OK\r\n"
-				"Date: teste\r\n"
+				"Date: teste\n"
 				"Server: \r\n"
            		"Content-Type: text/plain\r\n"
            		"Content-Length: 13\r\n"

@@ -6,7 +6,7 @@
 /*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/24 14:21:37 by joannpdetor       #+#    #+#             */
-/*   Updated: 2024/07/06 17:45:53 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/06 17:59:35 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -111,7 +111,6 @@ status	HttpServer::onRequestReceived(std::vector<struct pollfd>::iterator it)
 
 	if (it->revents & POLLOUT)
 	{
-		std::cout << "1\n";
 		int	bytesent = send( it->fd, response.c_str(), response.size(), 0 );
 		if (bytesent == -1)
 			diplayMsgError( "send" , 1 );
