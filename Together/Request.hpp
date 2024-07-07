@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
+/*   By: joannpdetorres <joannpdetorres@student.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/26 11:35:27 by jp-de-to          #+#    #+#             */
-/*   Updated: 2024/07/07 15:05:27 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/07 20:21:48 by joannpdetor      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,8 @@
 # include <cctype>
 # include <ctime> 
 # include <iomanip>
+# include <sys/types.h>
+# include <dirent.h>
 # include "ConfigExtractor.hpp"
 
 enum CODE
@@ -63,6 +65,7 @@ class	Request
 {
 	private:
 		
+		Server						_defaultConfigServer;
 		Server						_configServer;
 		int							_code;
 		Step						_step;
@@ -70,18 +73,19 @@ class	Request
 		std::vector<std::string>	_headersTmp;
 		ResponseInfos 				_infos;
 			
-		bool	isGoodRequestLine( std::string& requestLine );
-		bool	isGoodHeaders( std::vector<std::string>& headers );
-		bool	isGoodBody( std::string& body );
-		Step	parseRequest( std::string& requestLine);
+		bool		isGoodRequestLine( std::string& requestLine );
+		bool		isGoodHeaders( std::vector<std::string>& headers );
+		Step		parseRequest( std::string& requestLine);
+		std::string getGMTDate();
 
-		std::string Request::getGMTDate();
-
+		std::string responseGet(Server& infoServer, ResponseInfos& infoResponse, Location& infoLocation);
+		std::string responsePost(Server& infoServer, ResponseInfos& infoResponse, Location& infoLocation);
+		std::string responseDelete(Server& infoServer, ResponseInfos& infoResponse, Location& infoLocation);
 
 	public:
 
 		Request();
-		Request( Server& configServer );
+		Request( Server& configServer, Server& defaultServer );
 		~Request();
 
 		void		printInfos();

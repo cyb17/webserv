@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpServer.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
+/*   By: joannpdetorres <joannpdetorres@student.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/24 14:21:37 by joannpdetor       #+#    #+#             */
-/*   Updated: 2024/07/06 17:59:35 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/07 17:54:12 by joannpdetor      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -89,7 +89,7 @@ status	HttpServer::onRequestReceived(std::vector<struct pollfd>::iterator it)
 	std::string tmp(buffer);
 	if (_requestLst.empty() || _requestLst.find(it->fd) == _requestLst.end())
 	{	
-		Request request(_infoClientLst[it->fd]);
+		Request request(_infoClientLst[it->fd], _serverConfigLst[0]);
 		_requestLst.insert(std::make_pair(it->fd, request));
 	}
 	std::string response =  _requestLst[it->fd].buildResponse(tmp);

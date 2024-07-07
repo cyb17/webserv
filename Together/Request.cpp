@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
+/*   By: joannpdetorres <joannpdetorres@student.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/26 15:36:30 by jp-de-to          #+#    #+#             */
-/*   Updated: 2024/07/07 15:15:39 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/07 21:13:36 by joannpdetor      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 Request::Request() {}
 
-Request::Request( Server& configServer ) : _configServer( configServer ), _code( 200 ), _step(firstLine)
+Request::Request( Server& configServer, Server& defaultServer ) : _defaultConfigServer(defaultServer), _configServer( configServer ), _code( 200 ), _step(firstLine)
 {
 	time(&_startTime);
 	_infos.bodyLengthRequest = -1;
@@ -65,6 +65,11 @@ std::string Request::getGMTDate()
 	return ss.str();
 }
 
+std::string	Request::responseGet(Server& infoServer, ResponseInfos& infoResponse, Location& infoLocation)
+{
+
+}
+
 std::string	Request::buildResponse( std::string& requestLine )
 {
 	if (parseRequest(requestLine) != complete)
@@ -77,6 +82,54 @@ std::string	Request::buildResponse( std::string& requestLine )
 		response = "HTTP/1.1 400 Bad Request\r\n" + date + server + "\r\nError: Bad Request";
 	else
 	{	
+		ResponseInfos infoResponse = getResponseInfos();
+		Server		infoServer = _configServer;
+
+		// check server name
+		if (infoResponse.host != infoServer.serverName)
+			infoServer = _defaultConfigServer;
+
+		// check root
+			
+		unsigned long i = 0;
+		while (i < infoServer.location.size())
+		{
+			if (infoResponse.locationRoot == infoServer.location[i++].root)
+				break;
+		}
+		if (i == infoServer.location.size())
+		{
+			if (infoResponse.locationRoot != infoServer.root)
+				response = "HTTP/1.1 404 Not Found\r\n" + date + server + "\r\nError: Not Found";
+		}
+		DIR *dir = opendir(infoResponse.locationRoot.c_str());
+		if (dir == NULL)
+			response = "HTTP/1.1 404 Not Found\r\n" + date + server + "\r\nError: Not Found";
+		closedir(dir);
+		
+		// check method allowed
+		Location infoLocation = infoServer.location[i];
+		i = 0;
+		while (i < infoLocation.allowMethods.size())
+		{
+			if (infoResponse.method == infoLocation.allowMethods[i++])
+				break ;
+		}
+		if (i == infoLocation.allowMethods.size())
+			response = "HTTP/1.1 405 Method Not Allowed\r\n" + date + server + "\r\nError: Method Not Allowed";
+
+		switch (infoLocation.allowMethods[i][0])
+		{
+			case 'G':
+				response = responseGet(infoServer, infoResponse, infoLocation);
+				break;
+			case 'P':
+				response = responsePost(infoServer, infoResponse, infoLocation);
+				break;
+			case 'D':
+				response = responseDelete(infoServer, infoResponse, infoLocation);
+				break;
+		}
 		en commun:
 			trouve le root qui correspond au chemin du dossier
 				si oui, verifie si la methode est autorisee
@@ -104,6 +157,26 @@ std::string	Request::buildResponse( std::string& requestLine )
 
 	}
 	return response;
+}
+
+std::string	Request::responseGet(Server& infoServer, ResponseInfos& infoResponse, Location& infoLocation)
+{
+	// dossier
+	if (infoResponse.locationFile.empty())
+	{
+		
+	}
+	// file
+}
+
+std::string	Request::responsePost(Server& infoServer, ResponseInfos& infoResponse, Location& infoLocation)
+{
+
+}
+
+std::string	Request::responseDelete(Server& infoServer, ResponseInfos& infoResponse, Location& infoLocation)
+{
+
 }
 
 Step	Request::parseRequest( std::string& requestLine)

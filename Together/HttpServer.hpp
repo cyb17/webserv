@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpServer.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
+/*   By: joannpdetorres <joannpdetorres@student.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/24 13:33:43 by joannpdetor       #+#    #+#             */
-/*   Updated: 2024/07/06 16:42:44 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/07 17:51:24 by joannpdetor      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,7 +46,6 @@ class HttpServer
 		std::map<int, Request>		_requestLst; // ind: fd socket client, val: requete du client
 		
     public :
-        
         HttpServer(std::vector<Server>& extract);
         ~HttpServer();
 
