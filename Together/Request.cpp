@@ -6,7 +6,7 @@
 /*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/26 15:36:30 by jp-de-to          #+#    #+#             */
-/*   Updated: 2024/07/06 17:58:05 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/07 15:15:39 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,8 @@ void	Request::printInfos()
 	std::cout << "REQUEST INFOS\n\n";
 	std::cout << "Code = " << _code << "\n";
 	std::cout << "* method = " << _infos.method << "\n";
-	std::cout << "* path = " << _infos.path << "\n";
+	std::cout << "* locationRoot = " << _infos.locationRoot << "\n";
+	std::cout << "* locationFile = " << _infos.locationFile << "\n";
 	std::cout << "* version = " << _infos.version << "\n";
 	std::cout << "* host = " << _infos.host << "\n";
 	if (_infos.body.size() > 0)
@@ -42,7 +43,7 @@ void	Request::printInfos()
 	std::cout << "\n\n";
 }
 
-std::string getGMTDate()
+std::string Request::getGMTDate()
 {
 	time_t		currentTime;
 	struct tm*	timeInfos;
@@ -72,18 +73,36 @@ std::string	Request::buildResponse( std::string& requestLine )
 	std::string response;
 	std::string date = "Date: " + getGMTDate() + "\r\n";
 	std::string server = "Server: " + _configServer.serverName + "\r\n";
-	// if (_code == 400)
-		response = "HTTP/1.1 200 OK\r\n" + date + server + "Content-Type: text/plain\r\nContent-Length: 13\r\n\r\nbody...";
-	std::cout << response << '\n';
-	std::string response2;
-	response2 =	"HTTP/1.1 200 OK\r\n"
-				"Date: teste\n"
-				"Server: \r\n"
-           		"Content-Type: text/plain\r\n"
-           		"Content-Length: 13\r\n"
-           		"\r\n"
-           		"Hello, World!";
-	std::cout << response2 << '\n';
+	if (_code == 400)
+		response = "HTTP/1.1 400 Bad Request\r\n" + date + server + "\r\nError: Bad Request";
+	else
+	{	
+		en commun:
+			trouve le root qui correspond au chemin du dossier
+				si oui, verifie si la methode est autorisee
+				si non, retourne 404 Not Found
+		GET:
+		si le fichier demande est un dossier:
+			si index.html oui, retourne le contenu de ce fichier
+			si index.html non, ET que autoindex off, retourne 404 Not Found
+			si index.html non, ET que autoindex on, retourne un listing de tous les sous repertoires et fichier
+													qui sont des liens de redirections fonctionnels
+		si le fichier demande est un fichier normal: 
+			si existe, retourne les contenu de ce fichier
+			si non, retourne 404 Not Found
+		si le fichier demande est un executable cgi
+			lance le child cgi proces qui genere un resultat
+			retourne le resultat genere.
+		POST:
+		si le path se temine avec un fichier normal, retourne 405 Method Not Allowed
+		si le path se temine avec un fichier cgi, execute le cgi (besoin ou non du content de POST selon le script choisi)
+			si execution cgi succes retourne 200 OK,
+			si non retourne 500 Internal Server Error
+		si le path se termine avec un dossier, stock le content dans ce dossier.
+		DELETE:
+		suprime le dossier ou le fichier que pointe uri.
+
+	}
 	return response;
 }
 
@@ -145,7 +164,8 @@ bool	Request::isGoodRequestLine( std::string& requestLine)
 	std::string word;
 	while ( iss >> word )
 		lineInfo.push_back( word );
-	if (lineInfo.size() != 3
+	size_t	lastSlash = lineInfo[1].find_last_of( '/', lineInfo[1].size() );
+	if (lineInfo.size() != 3 || lastSlash == std::string::npos
 		|| (lineInfo[0] != "GET" && lineInfo[0] != "POST" && lineInfo[0] != "DELETE")
 		|| lineInfo[2] != "HTTP/1.1")
 	{
@@ -153,8 +173,9 @@ bool	Request::isGoodRequestLine( std::string& requestLine)
 		return false;
 	}
 	_infos.method = lineInfo[0];
-	_infos.path = lineInfo[1];
 	_infos.version = lineInfo[2];
+	_infos.locationRoot = lineInfo[1].substr( 0, lastSlash + 1 );
+	_infos.locationFile = lineInfo[1].substr( lastSlash + 1, lineInfo[1].length() );
 	return true;
 }
 
@@ -199,183 +220,3 @@ int				Request::getCode() { return (_code); }
 Step			Request::getStep() { return (_step); }
 time_t			Request::getStartTime() { return (_startTime); }
 ResponseInfos	Request::getResponseInfos() { return (_infos); }
-
-
-// Request::Request() : _socket(-1), _step(0), _line(""), _responseCode(0) {}
-	
-// Request::Request(int socket) : _socket(socket), _step(0),_line(""),  _responseCode(0) {}
-
-// Request::~Request() {} 
-
-// int Request::parsing()
-// {
-// 	char buffer[1];
-// 	int len = 1;
-
-// 	while (len > 0)
-// 	{
-// 		len = recv(_socket, buffer, 1, 0);
-// 		if (len == -1)
-// 		{
-// 			if (errno != EAGAIN || errno != EWOULDBLOCK)
-// 			{
-// 				printMsgError("recv");
-// 				return (_responseCode = 500);
-// 			}
-// 		}
-// 		buffer[len] = '\0';
-// 		_line += buffer;
-// 		if (_step == 0 && _line != "\r\n")
-// 				_step = 1;
-// 		if (_step > 0 && buffer[0] == '\n') 
-// 		{
-// 			if (init() > 0)
-// 				break;
-// 			else
-// 				_line = "";
-// 		}
-// 	}
-// 	return (_responseCode);
-// }
-
-// int Request::init()
-// {
-// 	if (_firstLine.empty() && _line != "\r\n" && _step == 1)
-// 		return (setFirstLine());
-// 	if (_step == 2)
-// 		return (setHeaders());
-// 	// if (_step == 3)
-// 	// {
-// 	// 	if (_line == "\r")
-// 	// 		return (_responseCode = 200);
-// 	// 	else 
-// 	// 	{
-// 	// 		_body.push_back(_line);
-// 	// 		return (_responseCode = 0);
-// 	// 	}
-// 	// }
-// 	return (0);
-// }
-
-// //SETTERS
-
-// int Request::setFirstLine()
-// {
-// 	std::istringstream iss(_line);
-// 	std::string	word;
-// 	std::string firstline[3] = {"method", "url", "http"};
-// 	for (int i = 0; i < 3; ++i)
-// 	{
-// 		if (iss >> word)
-// 			_firstLine.insert(std::make_pair(firstline[i], word));
-// 	}
-// 	if (iss >> word || _firstLine.size() != 3)
-// 		return (_responseCode = 400);
-// 	if (checkFirstLine() == false)
-// 		return (_responseCode);
-// 	_step++;
-// 	return (0);
-// }
-
-// int Request::setHeaders()
-// {
-// 	if (_line == "\r\n")
-// 	{
-// 		if (_headers.empty())
-// 			return(_responseCode = 400);
-// 		else
-// 			return (_step++, _responseCode = 200);
-// 	}
-// 	std::istringstream iss(_line);
-// 	std::string header;
-// 	std::string word;
-// 	std::string value;
-		
-// 	iss >> header;
-// 	while (iss >> word)
-// 	{
-// 		value += word;
-// 		value += " ";
-// 	}
-// 	if (header == "Host:" && value.empty())
-// 		return (_responseCode = 400);
-// 	_headers.insert(std::make_pair(header, value));
-// 	return (0);
-// }
-
-// // CHECK FUNCTIONS
-
-// bool Request::checkFirstLine()
-// {
-// 	std::map<std::string,std::string>::iterator it;
-	
-// 	//Check method
-// 	it = _firstLine.find("method");
-// 	std::string method[3] = {"GET", "POST", "DELETE"};
-// 	if (it != _firstLine.end())
-// 	{
-// 		int i = 0;
-// 		while (i < 3)
-// 		{
-// 			if (it->second == method[i++])
-// 				break;
-// 		}
-// 		if (i == 3)
-// 			return (_responseCode = 400, false);
-// 	}
-// 	//Check version http
-// 	it = _firstLine.find("http");
-// 	if (it->second != "HTTP/1.1")
-// 		return (_responseCode = 400, false);
-// 	//Check url
-// 	it = _firstLine.find("url");
-// 	if (it != _firstLine.end())
-// 	{
-// 		std::string path = it->second;
-// 		std::ifstream file(path.c_str());
-		
-// 		if (!file)
-// 			return (_responseCode = 404, false);
-// 		file.close();
-// 	}
-// 	return (true);
-// }
-
-// bool Request::checkHeaders()
-// {
-// 	std::map<std::string,std::string>::iterator it;
-	
-//     for (it = _firstLine.begin(); it != _firstLine.end(); ++it)
-// 	{
-//     	if (it->first == "Host:")
-// 			return (true);
-// 	}
-// 	return (false);
-// }
-
-// //GETTERS
-
-// int	Request::getResponseCode() { return (_responseCode); }
-
-// //PRINT FUNCTIONS
-
-// void Request::printFirstLine() const
-// {
-//     std::map<std::string, std::string>::const_iterator it;
-	
-//     for (it = _firstLine.begin(); it != _firstLine.end(); ++it)
-//         std::cout << it->first << ": " << it->second << "\n";
-// }
-
-// void Request::printHeaders() const
-// {
-//     std::map<std::string, std::string>::const_iterator it;
-	
-//     for (it = _headers.begin(); it != _headers.end(); ++it)
-//         std::cout << it->first << " " << it->second << "\n";
-// }
-
-// void Request::printMsgError(const char *err)
-// {
-// 	std::cerr << "ERROR : " << err << " => " << strerror(errno) << "\n";
-// }

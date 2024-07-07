@@ -6,7 +6,7 @@
 /*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/26 11:35:27 by jp-de-to          #+#    #+#             */
-/*   Updated: 2024/07/06 17:10:11 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/07 15:05:27 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,7 +50,8 @@ enum Step
 typedef struct ResponseInfos
 {
 	std::string	method;
-	std::string path;
+	std::string locationRoot;
+	std::string locationFile;
 	std::string version;
 	std::string host;
 	int bodyLengthRequest;
@@ -66,13 +67,16 @@ class	Request
 		int							_code;
 		Step						_step;
 		time_t						_startTime;
-		ResponseInfos 				_infos;
 		std::vector<std::string>	_headersTmp;
+		ResponseInfos 				_infos;
 			
 		bool	isGoodRequestLine( std::string& requestLine );
 		bool	isGoodHeaders( std::vector<std::string>& headers );
 		bool	isGoodBody( std::string& body );
 		Step	parseRequest( std::string& requestLine);
+
+		std::string Request::getGMTDate();
+
 
 	public:
 
@@ -83,7 +87,6 @@ class	Request
 		void		printInfos();
 		std::string	buildResponse( std::string& requestLine );
 
-		//GETTERS
 		Step			getStep();
 		int				getCode();
 		time_t			getStartTime();
