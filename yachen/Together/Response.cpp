@@ -6,7 +6,7 @@
 /*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/08 13:44:19 by yachen            #+#    #+#             */
-/*   Updated: 2024/07/08 15:56:06 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/08 16:25:07 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,6 +60,9 @@ int	makeBody( std::string path, std::string& body )
 int	makeListing( std::string dirRoot, std::string& body )
 
 int	executeCgi( std::string path,std::string& body )
+{
+	
+}
 
 std::string	myGet( Server& config, ResponseInfos& infos )
 {
