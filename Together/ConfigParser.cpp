@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ConfigParser.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
+/*   By: jp-de-to <jp-de-to@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/24 16:39:38 by yachen            #+#    #+#             */
-/*   Updated: 2024/07/02 11:42:36 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/08 11:18:25 by jp-de-to         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -237,7 +237,7 @@ void	ConfigParser::checkHostPort()
 // definie les regles de configuration pour les parametres des directives 
 void	ConfigParser::checkParameterContent( std::vector<Token*>& directive )
 {
-	std::string	allowCaracters( "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_" );
+	std::string	allowCaracters( "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ://." );
 	size_t	size = directive.size();
 	
 	if (directive[0]->value == "serverName" && directive[1]->value.find_first_not_of( allowCaracters ) != std::string::npos)

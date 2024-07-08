@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpServer.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: joannpdetorres <joannpdetorres@student.    +#+  +:+       +#+        */
+/*   By: jp-de-to <jp-de-to@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/24 14:21:37 by joannpdetor       #+#    #+#             */
-/*   Updated: 2024/07/07 17:54:12 by joannpdetor      ###   ########.fr       */
+/*   Updated: 2024/07/08 13:22:27 by jp-de-to         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -93,7 +93,6 @@ status	HttpServer::onRequestReceived(std::vector<struct pollfd>::iterator it)
 		_requestLst.insert(std::make_pair(it->fd, request));
 	}
 	std::string response =  _requestLst[it->fd].buildResponse(tmp);
-	
 	if ( _requestLst[it->fd].getStep() != complete)
 	{
 		time_t now;
@@ -108,9 +107,9 @@ status	HttpServer::onRequestReceived(std::vector<struct pollfd>::iterator it)
 		}
 		return (CONNECT);
 	}
-
 	if (it->revents & POLLOUT)
 	{
+		std::string response =  _requestLst[it->fd].buildResponse(tmp);
 		int	bytesent = send( it->fd, response.c_str(), response.size(), 0 );
 		if (bytesent == -1)
 			diplayMsgError( "send" , 1 );

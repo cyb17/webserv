@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: joannpdetorres <joannpdetorres@student.    +#+  +:+       +#+        */
+/*   By: jp-de-to <jp-de-to@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/26 11:35:27 by jp-de-to          #+#    #+#             */
-/*   Updated: 2024/07/07 20:21:48 by joannpdetor      ###   ########.fr       */
+/*   Updated: 2024/07/08 13:31:56 by jp-de-to         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,15 +56,14 @@ typedef struct ResponseInfos
 	std::string locationFile;
 	std::string version;
 	std::string host;
-	int bodyLengthRequest;
-	int	bodyLen;
+	int 		bodyLengthRequest;
+	int			bodyLen;
 	std::vector<std::string> body;
 } ResponsesInfos;
 
 class	Request
 {
 	private:
-		
 		Server						_defaultConfigServer;
 		Server						_configServer;
 		int							_code;
@@ -78,9 +77,9 @@ class	Request
 		Step		parseRequest( std::string& requestLine);
 		std::string getGMTDate();
 
-		std::string responseGet(Server& infoServer, ResponseInfos& infoResponse, Location& infoLocation);
-		std::string responsePost(Server& infoServer, ResponseInfos& infoResponse, Location& infoLocation);
-		std::string responseDelete(Server& infoServer, ResponseInfos& infoResponse, Location& infoLocation);
+		// std::string responseGet(Server& infoServer, ResponseInfos& infoResponse, Location& infoLocation);
+		// std::string responsePost(Server& infoServer, ResponseInfos& infoResponse, Location& infoLocation);
+		// std::string responseDelete(Server& infoServer, ResponseInfos& infoResponse, Location& infoLocation);
 
 	public:
 
@@ -89,49 +88,15 @@ class	Request
 		~Request();
 
 		void		printInfos();
+		void		printServer(Server& info);
 		std::string	buildResponse( std::string& requestLine );
 
-		Step			getStep();
+		//GETTERS
 		int				getCode();
 		time_t			getStartTime();
 		ResponseInfos	getResponseInfos();
+		Server 			getDefaultConfig();
+		Server			getServerConfig();
 };
-
-// class Request
-// {
-// 	private:
-// 		int									_socket;
-// 		int									_step;
-// 		std::string							_line;
-// 		int									_responseCode;
-// 		std::map<std::string, std::string> 	_firstLine;
-// 		std::map<std::string, std::string>	_headers;
-// 		std::vector<std::string>			_body;
-	
-// 	public:
-// 		Request();
-// 		Request(int socket);
-// 		~Request();
-
-// 		//MEMBER FUNCTIONS
-// 		int parsing();
-// 		int init();
-
-// 		//CHECK FUNCTIONS
-// 		bool checkFirstLine();
-// 		bool checkHeaders();
-		
-// 		//SETTERS
-// 		int setFirstLine();
-// 		int	setHeaders();
-
-// 		//GETTERS
-// 		int getResponseCode();
-
-// 		//PRINT FUNCTIONS
-// 		void printFirstLine() const;
-// 		void printHeaders() const;
-// 		void printMsgError(const char *err);
-// };
 
 #endif
