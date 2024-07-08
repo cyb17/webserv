@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
+/*   By: jp-de-to <jp-de-to@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/26 15:36:30 by jp-de-to          #+#    #+#             */
-/*   Updated: 2024/07/08 13:48:35 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/08 14:37:42 by jp-de-to         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -276,5 +276,5 @@ bool	Request::isGoodHeaders( std::vector<std::string>& headers )
 int				Request::getCode() { return (_code); }
 time_t			Request::getStartTime() { return (_startTime); }
 ResponseInfos	Request::getResponseInfos() { return (_infos); }
-Server 			Request::getDefaultConfig() { return (_defaultConfigServer)};
-Server			Request::getServerConfig()  {return (_configServer)};
+Server 			Request::getDefaultConfig() { return (_defaultConfigServer); }
+Server			Request::getServerConfig()  { return (_configServer); }
