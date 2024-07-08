@@ -1,3 +1,5 @@
+
+
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
@@ -6,21 +8,15 @@
 /*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/24 14:21:37 by joannpdetor       #+#    #+#             */
-/*   Updated: 2024/07/08 13:55:14 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/08 13:55:57 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "HttpServer.hpp"
 
-HttpServer::HttpServer(std::vector<Server>& extract) : _serverConfigLst(extract)
-{
-	return ; 
-}
+HttpServer::HttpServer(std::vector<Server>& extract) : _serverConfigLst(extract) {}
 
-HttpServer::~HttpServer() 
-{
-	return ; 
-}
+HttpServer::~HttpServer() {}
 
 /*SETUP ALL SERVERS
 Creer une boucle qui va creer une socket en mode ecoute pour chaque serveur indique
@@ -42,17 +38,17 @@ void    HttpServer::setupAllServers()
 		hints.ai_socktype = SOCK_STREAM;
 		hints.ai_flags = AI_PASSIVE;
 		if (getaddrinfo(_serverConfigLst[i].host.c_str(), _serverConfigLst[i].listen.c_str() , &hints, &res) != 0)
-			serverError("getaddrinfo", 0);
+			exitError("getaddrinfo", res, 0);
 
 		int serverSocket = socket(res->ai_family,res->ai_socktype | SOCK_NONBLOCK, res->ai_protocol);
 		if (serverSocket == -1)
-			serverError("socket", 1);
+			exitError("socket", res, 1);
 		
 		if (bind(serverSocket, res->ai_addr, res->ai_addrlen) == -1)
-			serverError("bind", 1);
-
+			exitError("bind", res, 1);
+		
 		if (listen(serverSocket, BACKLOG) == -1)
-			serverError("listen", 1);
+			exitError("listen", res, 1);
 
 		pollfd serverFd = {serverSocket, POLLIN, 0};
 		_listSockets.push_back(serverFd);
@@ -69,7 +65,7 @@ void	HttpServer::acceptNewConnexion(int serverSocket, Server& info)
 	if (clientSocket == -1)
 	{
 		if (errno != EAGAIN && errno != EWOULDBLOCK)
-			diplayMsgError("accept", 1);
+			diplayMsgError("accept");
 		return;
 	}
 	pollfd clientFd = {clientSocket, POLLIN | POLLOUT, 0};
@@ -81,7 +77,7 @@ status	HttpServer::onRequestReceived(std::vector<struct pollfd>::iterator it)
 {
 	int	len;
 	char buffer[1024];
-	len = recv(it->fd, buffer, 1023, 0);
+	len = recv(it->fd, buffer, 1024, 0);
 	if (len <= 0)
 		return (DISCONNECT);
 	buffer[len] = '\0';
@@ -91,16 +87,15 @@ status	HttpServer::onRequestReceived(std::vector<struct pollfd>::iterator it)
 		Request request(_infoClientLst[it->fd], _serverConfigLst[0]);
 		_requestLst.insert(std::make_pair(it->fd, request));
 	}
-	std::string response =  _requestLst[it->fd].buildResponse(tmp);
-	if ( _requestLst[it->fd].getStep() != complete)
+	if ( _requestLst[it->fd].parseRequest(tmp) != complete)
 	{
 		time_t now;
 		double secs;
 		time(&now);
 		secs = difftime(now, _requestLst[it->fd].getStartTime());
-		if (secs > 120)
+		if (secs < 120)
 		{
-			std::cout << "Error: the customer request takes too long time to finalize\n";
+			std::cerr << "Error: the customer request takes too long time to finalize\n";
 			_requestLst.erase(it->fd);
 			return (DISCONNECT);
 		}
@@ -112,7 +107,7 @@ status	HttpServer::onRequestReceived(std::vector<struct pollfd>::iterator it)
 		std::string str = response.buildResponse( _requestLst[it->fd] );
 		int	bytesent = send( it->fd, str.c_str(), str.size(), 0 );
 		if (bytesent == -1)
-			diplayMsgError( "send" , 1 );
+			diplayMsgError("send");
 	}
 	_requestLst.erase(it->fd);
 	return (DISCONNECT);
@@ -126,7 +121,7 @@ void	HttpServer::runAllServers()
 	{	// surveiller l'ensemble des fd par poll() pour des operation E/S.
 		int pollStatus = poll(_listSockets.data(), _listSockets.size(), -1);
 		if (pollStatus == -1)
-			diplayMsgError("poll", 1);
+			diplayMsgError("poll");
 		else
 		{
 			for (int i = 0; i < nbServer; ++i)
@@ -152,10 +147,20 @@ void	HttpServer::runAllServers()
 	}
 }
 
-void	HttpServer::diplayMsgError(const char *err, int i)
+void	HttpServer::exitError(std::string err, addrinfo *res, int i)
 {
+	if (res)
+		freeaddrinfo(res);
 	if (!i)
-		std::cerr << "ERROR : " << err << " => " << gai_strerror(errno) << "\n";
+	{
+		std::string tmp(gai_strerror(errno));
+		throw std::invalid_argument(err + " => " + tmp);
+	}
 	else
-		std::cerr << "ERROR : " << err << " => " << strerror(errno) << "\n";
+	{
+		std::string tmp(strerror(errno));
+		throw std::invalid_argument(err + " => " + tmp);
+	}
 }
+
+void	HttpServer::diplayMsgError(const char *err) { std::cerr << "ERROR : " << err << " => " << strerror(errno) << "\n"; }

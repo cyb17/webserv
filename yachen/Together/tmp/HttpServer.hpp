@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpServer.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jp-de-to <jp-de-to@student.42.fr>          +#+  +:+       +#+        */
+/*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/24 13:33:43 by joannpdetor       #+#    #+#             */
-/*   Updated: 2024/07/08 15:09:44 by jp-de-to         ###   ########.fr       */
+/*   Updated: 2024/07/08 14:57:27 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,6 @@
 # include "Request.hpp"
 # include "ConfigExtractor.hpp"
 # include "Response.hpp"
-# include <stdexcept>
 
 # define BACKLOG 1024
 
@@ -48,19 +47,17 @@ class HttpServer
 		std::map<int, Request>		_requestLst; // ind: fd socket client, val: requete du client
 		
     public :
-		// CONSTRUCTORS & DESTRUCTORS
         HttpServer(std::vector<Server>& extract);
         ~HttpServer();
 
-		// MEMBER FUNCTIONS
         void setupAllServers();
         void runAllServers();
+
+		void displayMsgError(const char *err, int i);
+		void serverError(const char *err, int i);
         void acceptNewConnexion(int serverSocket, Server& info);
 		status	onRequestReceived(std::vector<struct pollfd>::iterator it);
-		
-		void diplayMsgError(const char *err);
-		void exitError(std::string err, addrinfo *res, int i);
-		
+
 };
 
 #endif
