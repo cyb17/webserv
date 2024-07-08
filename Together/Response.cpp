@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
+/*   By: jp-de-to <jp-de-to@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/08 13:44:19 by yachen            #+#    #+#             */
-/*   Updated: 2024/07/08 13:47:45 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/08 17:11:14 by jp-de-to         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 Response::Response() {}
 Response::~Response() {}
 
-std::string Request::getGMTDate()
+std::string Response::getGMTDate()
 {
 	time_t		currentTime;
 	struct tm*	timeInfos;
@@ -26,100 +26,105 @@ std::string Request::getGMTDate()
 	timeInfos = gmtime( &currentTime );
 	std::stringstream	ss;
 	
-    ss  << days[timeInfos->tm_wday] << ", "
+    ss  << "Date: "
+		<< days[timeInfos->tm_wday] << ", "
     	<< std::setfill('0') << std::setw(2) << timeInfos->tm_mday << " "
     	<< months[timeInfos->tm_mon] << " "
     	<< (timeInfos->tm_year + 1900) << " "
     	<< std::setfill('0') << std::setw(2) << timeInfos->tm_hour << ":"
     	<< std::setfill('0') << std::setw(2) << timeInfos->tm_min << ":"
     	<< std::setfill('0') << std::setw(2) << timeInfos->tm_sec
-    	<< " GMT";
+    	<< " GMT\r\n";
 	return ss.str();
 }
 
-std::string	Response::buildResponse( Request& request )
+std::string	Response::build( int code, std::string& serverName, std::string body )
 {
-	std::string response;
-	std::string date = "Date: " + getGMTDate() + "\r\n";
-	std::string server = "Server: " + _configServer.serverName + "\r\n";
-	if (_code == 400)
-		response = "HTTP/1.1 400 Bad Request\r\n" + date + server + "\r\nError: Bad Request";
+	std::string date = getGMTDate();
+	std::string server = "Server: " + serverName + "\r\n";
+	switch (code)
+	{
+		case 400:
+			return "HTTP/1.1 400 Bad Request\r\n" + date + server + "\r\n" + body;
+		case 404:
+			return "HTTP/1.1 404 Not Found\r\n" + date + server + "\r\n" + body;
+		case 405:
+			return "HTTP/1.1 405 Method Not Allowed\r\n" + date + server + "\r\n" + body;
+	}
+	return "HTTP/1.1 200 OK\r\n" + date + server + "\r\n" + body;
+}
+
+// retourne une reponse http avec comme body le contenu du fichier lu
+int	makeBody( std::string path, std::string& body )
+{
+	std::ifstream file(path.c_str());
+	if (!file)
+	{
+		body = "Forbidden\r\n";
+		return (403);
+	}
+	std::string line;
+	while (std::getline(file, line))
+		body += line;
+	return (200);
+}
+
+// int	makeListing( std::string dirRoot, std::string& body )
+
+// int	executeCgi( std::string path,std::string& body )
+
+std::string	myGet( Server& config, ResponseInfos& infos )
+{
+	std::string	dirRoot = config.root + infos.locationRoot;
+	int	response;
+	std::string	body;
+	if (infos.locationFile.empty())
+	{
+		if (!config.index.empty())
+			response = makeBody( dirRoot + config.index, body );
+		else if ( config.autoindex == "on" )
+			response = makeListing( dir, body );
+		else
+			return build( 404, config.serverName, "Error: Not Found" );
+	}
+	else if (infos.locationFile.find( ".py" != std::string::npos ))
+		response = executeCgi( dir + infos.locationFile, body );
 	else
-	{	
-		ResponseInfos infoResponse = getResponseInfos();
-		Server		infoServer = _configServer;
+		response =  makeBody( dir + infos.locationFile, body );
+	return build( response, config.serverName, body );
+}
 
-		// check server name
-		if (infoResponse.host != infoServer.serverName)
-			infoServer = _defaultConfigServer;
-		
-		// check root
-		unsigned long i = 0;
-		while (i < infoServer.location.size())
-		{
-			if (infoResponse.locationRoot == infoServer.location[i].root)
-				break;
+std::string	Response::buildResponse( Request& request )
+{	
+	ResponseInfos 	infos = request.getResponseInfos();
+	Server			config = request.getServerConfig();
+	std::string response;
+	if (infos.host != config.serverName)
+		config = request.getDefaultConfig();
+	if (request.getCode() == 400)
+		return build( 400, config.serverName, "Error: Bad Request" );
+	else
+	{
+		unsigned long i = 0;			// check root
+		while (i < config.location.size() && infos.locationRoot != config.location[i].root)
 			i++;
-		}
-		if (i == infoServer.location.size())
-			return (response = "HTTP/1.1 404 Not Found\r\n" + date + server + "\r\nError: Not Found");
-		std::string directoryRoot = infoServer.root + infoServer.location[i].root;
-		DIR *dir = opendir(directoryRoot.c_str());
-		if (dir == NULL)
-			return (response = "HTTP/1.1 404 Not Found\r\n" + date + server + "\r\nError: Not Found");
-		closedir(dir);
+		if (i == config.location.size())
+			return build( 404, config.serverName, "Error: Not Found" );
 		
-		// check method allowed
-		Location infoLocation = infoServer.location[i];
-		i = 0;
-		while (i < infoLocation.allowMethods.size())
-		{
-			if (infoResponse.method == infoLocation.allowMethods[i])
-				break ;
-			i++;
-		}
-		std::cout << i << " | " << infoLocation.allowMethods.size() << '\n';
-		if (i == infoLocation.allowMethods.size())
-			return (response = "HTTP/1.1 405 Method Not Allowed\r\n" + date + server + "\r\nError: Method Not Allowed");
-		response = "HTTP/1.1 200 OK\r\n" + date + server + "\r\nHello, World!";
-		switch (infoLocation.allowMethods[i][0])
-		{
-			case 'G':
-				response = responseGet(infoServer, infoResponse, infoLocation);
-				break;
-			case 'P':
-				response = responsePost(infoServer, infoResponse, infoLocation);
-				break;
-			case 'D':
-				response = responseDelete(infoServer, infoResponse, infoLocation);
-				break;
-		}
+		unsigned long j = 0;			// check method allowed
+		while (j < config.location[i].allowMethods.size() && infos.method != config.location[i].allowMethods[j])
+			j++;
+		if (j == config.location[i].allowMethods.size())
+			return build( 405, config.serverName, "Error: Method Not Allowed" );		
 		
-		// en commun:
-		// 	trouve le root qui correspond au chemin du dossier
-		// 		si oui, verifie si la methode est autorisee
-		// 		si non, retourne 404 Not Found
-		// GET:
-		// si le fichier demande est un dossier:
-		// 	si index.html oui, retourne le contenu de ce fichier
-		// 	si index.html non, ET que autoindex off, retourne 404 Not Found
-		// 	si index.html non, ET que autoindex on, retourne un listing de tous les sous repertoires et fichier
-		// 											qui sont des liens de redirections fonctionnels
-		// si le fichier demande est un fichier normal: 
-		// 	si existe, retourne les contenu de ce fichier
-		// 	si non, retourne 404 Not Found
-		// si le fichier demande est un executable cgi
-		// 	lance le child cgi proces qui genere un resultat
-		// 	retourne le resultat genere.
-		// POST:
-		// si le path se temine avec un fichier normal, retourne 405 Method Not Allowed
-		// si le path se temine avec un fichier cgi, execute le cgi (besoin ou non du content de POST selon le script choisi)
-		// 	si execution cgi succes retourne 200 OK,
-		// 	si non retourne 500 Internal Server Error
-		// si le path se termine avec un dossier, stock le content dans ce dossier.
-		// DELETE:
-		// suprime le dossier ou le fichier que pointe uri.
-
+		if (infos.method == "GET")
+			response = myGet( config, infos );
+		// else if (infos.method == "POST")
+		// 	response = myPost( config, infos );
+		// else
+		// 	response = myDelete( config, infos );
+		
+		response = build( 200, config.serverName, "Hello World" );
 	}
 	return (response);
 }
