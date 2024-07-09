@@ -6,7 +6,7 @@
 /*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/08 13:40:46 by yachen            #+#    #+#             */
-/*   Updated: 2024/07/08 15:01:32 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/09 13:45:25 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,18 +14,27 @@
 # define RESPONSE_HPP
 
 #include "Request.hpp"
+#include <unistd.h>
+#include <iostream>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <errno.h>
 
 class	Response
 {
 	private:
 		
+		char**	_env;
+		
 		std::string getGMTDate();
 		std::string	build( int code, std::string& serverName, std::string body );
+		int	executeCgi( std::string path,std::string& body );
+		std::string	myGet( Server& config, ResponseInfos& infos );
 
 		
 	public:
 
-		Response();
+		Response( char** env );
 		~Response();
 
 		std::string	buildResponse( Request& request );
@@ -33,27 +42,6 @@ class	Response
 };
 
 #endif
-
-
-// response = "HTTP/1.1 200 OK\r\n" + date + server + "\r\nHello, World!";
-// switch (infoLocation.allowMethods[i][0])
-// {
-// 	case 'G':
-// 		response = responseGet(config, infos, infoLocation);
-// 		break;
-// 	case 'P':
-// 		response = responsePost(config, infos, infoLocation);
-// 		break;
-// 	case 'D':
-// 		response = responseDelete(config, infos, infoLocation);
-// 		break;
-// }
-
-// std::string directoryRoot = config.root + config.location[i].root;
-// DIR *dir = opendir(directoryRoot.c_str());
-// if (dir == NULL)
-	// return (response = "HTTP/1.1 404 Not Found\r\n" + date + server + "\r\nError: Not Found");
-// closedir(dir);
 
 // en commun:
 // 	trouve le root qui correspond au chemin du dossier

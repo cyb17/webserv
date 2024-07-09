@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpServer.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jp-de-to <jp-de-to@student.42.fr>          +#+  +:+       +#+        */
+/*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/24 13:33:43 by joannpdetor       #+#    #+#             */
-/*   Updated: 2024/07/08 15:09:44 by jp-de-to         ###   ########.fr       */
+/*   Updated: 2024/07/09 10:37:29 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,16 +40,17 @@ enum status
 class HttpServer
 {
     private :
-	
+			
         std::vector<Server>         _serverConfigLst;	// configurations des servers.
         std::vector<struct pollfd>  _listSockets;	// sockets clients ET serveurs.
         std::map<int, Server>  		_infoServerLst;	// indice: fd socket server, valeur: configuration du server correspondant.
 		std::map<int, Server>		_infoClientLst;	// indice: fd socket client, valeur: configuration du server correspondant.
-		std::map<int, Request>		_requestLst; // ind: fd socket client, val: requete du client
+		std::map<int, Request>		_requestLst; // ind: fd socket client, val: requete du client.
+		char**						_env;
 		
     public :
 		// CONSTRUCTORS & DESTRUCTORS
-        HttpServer(std::vector<Server>& extract);
+        HttpServer(std::vector<Server>& extract, char** env);
         ~HttpServer();
 
 		// MEMBER FUNCTIONS
