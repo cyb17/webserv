@@ -6,7 +6,7 @@
 /*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/26 11:35:27 by jp-de-to          #+#    #+#             */
-/*   Updated: 2024/07/08 13:49:15 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/09 14:07:49 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,11 +74,6 @@ class	Request
 			
 		bool		isGoodRequestLine( std::string& requestLine );
 		bool		isGoodHeaders( std::vector<std::string>& headers );
-		// std::string getGMTDate();
-
-		// std::string responseGet(Server& infoServer, ResponseInfos& infoResponse, Location& infoLocation);
-		// std::string responsePost(Server& infoServer, ResponseInfos& infoResponse, Location& infoLocation);
-		// std::string responseDelete(Server& infoServer, ResponseInfos& infoResponse, Location& infoLocation);
 
 	public:
 
@@ -89,7 +84,6 @@ class	Request
 		void		printInfos();
 		void		printServer(Server& info);
 		Step		parseRequest( std::string& requestLine);
-		// std::string	buildResponse( std::string& requestLine );
 
 		//GETTERS
 		int				getCode();

@@ -14,7 +14,7 @@
 
 #include "HttpServer.hpp"
 
-HttpServer::HttpServer(std::vector<Server>& extract) : _serverConfigLst(extract) {}
+HttpServer::HttpServer(std::vector<Server>& extract, char** env) : _serverConfigLst(extract), _env(env) {}
 
 HttpServer::~HttpServer() {}
 
@@ -103,7 +103,7 @@ status	HttpServer::onRequestReceived(std::vector<struct pollfd>::iterator it)
 	}
 	if (it->revents & POLLOUT)
 	{
-		Response	response;
+		Response	response( _env );
 		std::string str = response.buildResponse( _requestLst[it->fd] );
 		int	bytesent = send( it->fd, str.c_str(), str.size(), 0 );
 		if (bytesent == -1)

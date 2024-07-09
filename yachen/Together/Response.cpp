@@ -6,7 +6,7 @@
 /*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/08 13:44:19 by yachen            #+#    #+#             */
-/*   Updated: 2024/07/09 13:52:10 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/09 14:03:40 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -96,7 +96,6 @@ int	Response::executeCgi( std::string path,std::string& body )
 		dup2( pipefd[1], STDOUT_FILENO );
 		close( pipefd[1] );
 		const char*	argv[] = { path.c_str(), NULL };
-		// std::cerr << path.c_str() << '\n';
 		if (execve( path.c_str(), (char* const* )argv, _env ) == -1)
 		{
 			close( STDOUT_FILENO );

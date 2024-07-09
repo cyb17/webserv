@@ -1,29 +1,29 @@
-#include <string>
-#include <iostream>
-#include <sstream>
-#include <fstream>
+#include <stdio.h>
+#include <stdlib.h>
+#include <dirent.h>
 
-int	makeBody( std::string path, std::string& body )
-{
-	std::ifstream file(path.c_str());
-	if (!file)
-	{
-		body = "Forbidden\r\n";
-		return (403);
-	}
-	std::string line;
-	while (std::getline(file, line))
-		body += line;
-	return (200);
-}
+int main() {
+    // Chemin du répertoire à lire
+    const char *chemin_repertoire = "./webSite";
 
-int main()
-{
-	std::string path("/mnt/nfs/homes/jp-de-to/hi.html");
-	std::string body;
-	int code = makeBody(path, body);
+    // Ouvrir le répertoire
+    DIR *dir = opendir(chemin_repertoire);
+    if (dir == NULL) {
+        perror("opendir");
+        return EXIT_FAILURE;
+    }
 
-	std::cout << "code = " << code << "\n";
-	std::cout << body;
-	return 0;
+    // Lire les entrées du répertoire
+    struct dirent *entry;
+    while ((entry = readdir(dir)) != NULL) {
+        printf("Nom de fichier: %s\n", entry->d_name);
+    }
+
+    // Fermer le répertoire
+    if (closedir(dir) == -1) {
+        perror("closedir");
+        return EXIT_FAILURE;
+    }
+
+    return EXIT_SUCCESS;
 }

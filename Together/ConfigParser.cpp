@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ConfigParser.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jp-de-to <jp-de-to@student.42.fr>          +#+  +:+       +#+        */
+/*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/24 16:39:38 by yachen            #+#    #+#             */
-/*   Updated: 2024/07/08 11:18:25 by jp-de-to         ###   ########.fr       */
+/*   Updated: 2024/07/09 17:35:28 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -258,19 +258,20 @@ void	ConfigParser::checkParameterContent( std::vector<Token*>& directive )
 				throw std::invalid_argument( "unknow method: " + directive[i]->value );
 		}
 	}
-	else if (directive[0]->value == "errorPages")
-	{	
-		for (size_t i = 1; i < size; i += 2)
-		{
-			if (directive[i]->value != "404" && directive[i]->value != "500")
-				throw std::invalid_argument( directive[0]->value + ": parameter error" );
-		}
-	}
 	else if (directive[0]->value == "return")
 	{
 		if (directive[1]->value != "301" && directive[1]->value != "302")
 			throw std::invalid_argument( directive[0]->value + ": unkown response code" );		
 	}
+	// else if (directive[0]->value == "errorPages")
+	// {	
+	// 	for (size_t i = 1; i < size; i += 2)
+	// 	{
+	// 		if (directive[i]->value != "404" && directive[i]->value != "500")
+	// 			throw std::invalid_argument( directive[0]->value + ": parameter error" );
+	// 	}
+	// }
+	
 }
 
 void	ConfigParser::checkLocation( std::vector<Token*>& location )
