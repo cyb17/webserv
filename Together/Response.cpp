@@ -6,7 +6,7 @@
 /*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/08 13:44:19 by yachen            #+#    #+#             */
-/*   Updated: 2024/07/10 16:27:02 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/10 17:59:37 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,6 @@
 Response::Response( char** env ) : _env( env ) {}
 
 Response::~Response() {}
-
 
 // construit une reponse d'erreur selon les pages d'erreurs configure dans le fichier .config
 std::string	Response::buildErrorResponse( int code, const Server& config )
@@ -49,57 +48,6 @@ std::string	Response::buildErrorResponse( int code, const Server& config )
 	return "HTTP/1.1 200 OK\r\n" + headersBody;
 }
 
-// lit le resultat du script cgi, le stock dans le body et met a jour le code HTTP.
-int	Response::readCgiResult( int fd, std::string& body )
-{
-	const size_t bufferSize = 10;
-    char	buffer[bufferSize];
-    ssize_t bytesRead;
-    body.clear();
-	bytesRead = read(fd, buffer, bufferSize);
-    while (bytesRead > 0)
-	{
-        body.append(buffer, bytesRead);
-		bytesRead = read(fd, buffer, bufferSize);
-	}
-    if (bytesRead == -1)
-        return 500;
-    return 200;
-}
-
-// cree un processus enfant pour executer le script externe, mettre a jour body le code HTTP.
-int	Response::executeCgi( std::string path, std::string& body )
-{
-	int	code = 200;
-	int	pipefd[2];
-	if (pipe( pipefd ) == -1)
-		return 500;
-	pid_t	pid = fork();
-	if (pid == -1)
-		return 500;
-	else if (pid == 0)
-	{
-		close( STDIN_FILENO );
-		close( pipefd[0] );
-		dup2( pipefd[1], STDOUT_FILENO );
-		close( pipefd[1] );
-		const char*	argv[] = { path.c_str(), NULL };
-		if (execve( path.c_str(), (char* const* )argv, _env ) == -1)
-		{
-			close( STDOUT_FILENO );
-			exit(1);
-		}
-	}
-	close( pipefd[1] );
-	int status;
-	waitpid(pid, &status, 0);
-    if (WIFEXITED(status) && WEXITSTATUS(status) != 0)
-		return 403;
-	code = readCgiResult( pipefd[0], body );
-	close( pipefd[0] );
-	return code;
-}
-
 // recupere une ressource demande par la requete HTTP
 std::string	Response::myGet( Server& config, Location& location, ResponseInfos& infos )
 {
@@ -118,9 +66,7 @@ std::string	Response::myGet( Server& config, Location& location, ResponseInfos& 
 	else							// la resource demande est un fichier
 	{
 		response = checkFileExistence( dirRoot, infos.locationFile );
-		if (response == 200 && infos.locationFile.find( ".sh" ) != std::string::npos)
-			response = executeCgi( dirRoot + infos.locationFile, body );
-		else if (response == 200)
+		if (response == 200)
 			response =  makeBody( dirRoot + infos.locationFile, body );
 	}
 	if (response != 200)
@@ -130,7 +76,7 @@ std::string	Response::myGet( Server& config, Location& location, ResponseInfos& 
 	return "HTTP/1.1 200 OK\r\n" + headersBody;
 }
 
-std::string	Response::buildResponse( Request& request )
+std::string	Response::buildResponse( Request& request, HttpServer& httpServer )
 {	
 	ResponseInfos 	infos = request.getResponseInfos();
 	Server			config = request.getServerConfig();
@@ -142,24 +88,38 @@ std::string	Response::buildResponse( Request& request )
 		return buildErrorResponse( 400, config);
 	else
 	{
-		unsigned long i = 0;			// check root
+		unsigned long i = 0;			// verifie si ce root exist dans .config
 		while (i < config.location.size() && infos.locationRoot != config.location[i].root)
 			i++;
 		if (i == config.location.size())
 			return buildErrorResponse( 404, config);
-		unsigned long j = 0;			// check method allowed
+		unsigned long j = 0;			// verifie si la methode est autorise pour ce root
 		while (j < config.location[i].allowMethods.size() && infos.method != config.location[i].allowMethods[j])
 			j++;
 		if (j == config.location[i].allowMethods.size())
 			return buildErrorResponse( 405, config);
-		
-		if (infos.method == "GET")
+	
+		if (infos.method == "DELETE")
+			response = "HTTP/1.1 200 OK\r\nDELETE"
+		else if (!infos.locationFile.empty() && infos.locationFile.find( ".sh" ))	//  le client demande a executer un script cgi
+		{
+			int	code = checkFileExistence( config.root + infos.locationRoot, infos.locationFile );
+			if (code == 200)
+			{
+				std::string	body;
+				code = httpServer.executeCgi( config.root + infos.locationRoot + infos.locationFile, body );
+				if (code == 200)
+					response = "HTTP/1.1 200 OK\r\n" + joinHeadersBody( config, body );
+				else
+					response = buildErrorResponse( code, config );
+			}
+			else
+				response = buildErrorResponse( code, config );
+		}
+		else if (infos.method == "GET")
 			response = myGet( config, config.location[i], infos );
 		else if (infos.method == "POST")
 			response = "HTTP/1.1 200 OK\r\nPOST";//myPost( config, infos );
-		else
-			response = "HTTP/1.1 200 OK\r\nDELETE";//myDelete( config, infos );
-		
 	}
 	return (response);
 }

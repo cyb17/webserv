@@ -6,7 +6,7 @@
 /*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/10 15:16:14 by yachen            #+#    #+#             */
-/*   Updated: 2024/07/10 15:17:49 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/10 17:31:57 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,16 +83,6 @@ int	Response::makeBody( std::string path, std::string& body )
 	return (200);
 }
 
-// trouve le path de la page d'erreur si le code a un page par defaut configure dans le ficheir .config
-std::string	Response::findErrorPage( int code, const Server& config )
-{
-	std::string	path;
-	std::map<int, std::string>::const_iterator	it = config.errorPages.find(code);
-	if (it != config.errorPages.end())
-		path = it->second;
-	return	path;
-}
-
 // retourne un listing des sous repertoires et fichier du dossier passe en parametre
 int Response::makeListing(const std::string& dirRoot, std::string& body)
 {
@@ -113,4 +103,14 @@ int Response::makeListing(const std::string& dirRoot, std::string& body)
 	closedir(dir);
 	body += "</ul></body></html>";
 	return 200;
+}
+
+// trouve le path de la page d'erreur si le code a un page par defaut configure dans le ficheir .config
+std::string	Response::findErrorPage( int code, const Server& config )
+{
+	std::string	path;
+	std::map<int, std::string>::const_iterator	it = config.errorPages.find(code);
+	if (it != config.errorPages.end())
+		path = it->second;
+	return	path;
 }

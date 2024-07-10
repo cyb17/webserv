@@ -6,7 +6,7 @@
 /*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/08 13:40:46 by yachen            #+#    #+#             */
-/*   Updated: 2024/07/10 14:13:40 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/10 17:32:26 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,9 @@
 #include "Request.hpp"
 #include <sys/wait.h>
 #include <dirent.h>
+#include "HttpServer.hpp"
+
+class	HttpServer;
 
 class	Response
 {
@@ -23,18 +26,16 @@ class	Response
 	
 		char**		_env;
 		
+		// ResponseTools.cpp
 		std::string getGMTDate();
 		std::string	joinHeadersBody( const Server& config, std::string& body );
 		int			checkFileExistence( std::string path, std::string& file );
 		int			makeBody( std::string path, std::string& body );
 		int 		makeListing(const std::string& dirRoot, std::string& body);
-
 		std::string	findErrorPage( int code, const Server& config );
-		std::string	buildErrorResponse( int code, const Server& config );
-
-		int			readCgiResult( int fd, std::string& body );
-		int			executeCgi( std::string path, std::string& body );
 		
+		// Reponse.cpp
+		std::string	buildErrorResponse( int code, const Server& config );
 		std::string	myGet( Server& config, Location& location, ResponseInfos& infos );
 
 		
@@ -43,7 +44,7 @@ class	Response
 		Response( char** env );
 		~Response();
 
-		std::string	buildResponse( Request& request );
+		std::string	buildResponse( Request& request, HttpServer& httpServer );
 
 };
 

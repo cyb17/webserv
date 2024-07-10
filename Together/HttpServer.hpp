@@ -6,7 +6,7 @@
 /*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/24 13:33:43 by joannpdetor       #+#    #+#             */
-/*   Updated: 2024/07/10 16:30:03 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/10 17:26:29 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,20 +48,21 @@ class HttpServer
 		std::map<int, Request>		_requestLst; // ind: fd socket client, val: requete du client
 		char**						_env;
 
-		void setupAllServers();
-		void acceptNewConnexion(int serverSocket, Server& info);
+		void	acceptNewConnexion(int serverSocket, Server& info);
 		status	onRequestReceived(std::vector<struct pollfd>::iterator it);
-		
-		void diplayMsgError(const char *err);
-		void exitError(std::string err, addrinfo *res, int i);
+		int		readCgiResult( int fd, std::string& body );
+		void 	diplayMsgError(const char *err);
+		void 	exitError(std::string err, addrinfo *res, int i);
 		
 		public :
 			
 			HttpServer(std::vector<Server>& extract, char** env);
 			~HttpServer();
 			
+			void 	setupAllServers();
 			void	runAllServers();
 			int		executeCgi( std::string path, std::string& body );
+			
 };
 
 #endif
