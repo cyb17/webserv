@@ -6,7 +6,7 @@
 /*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/26 11:35:27 by jp-de-to          #+#    #+#             */
-/*   Updated: 2024/07/09 14:07:49 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/10 11:40:29 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,7 @@ enum CODE
 {
 	C200, //OK
 	C400, //bad request
+	C403, //Forbidden
 	C404, //not found
 	C405, //Method Not Allowed
 	C408, //Request Timeout

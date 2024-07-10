@@ -6,7 +6,7 @@
 /*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/08 13:44:19 by yachen            #+#    #+#             */
-/*   Updated: 2024/07/09 18:25:47 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/10 14:20:57 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,17 +51,43 @@ std::string	Response::joinHeadersBody( const Server& config, std::string& body )
 	return headersBody;
 }
 
-// lit un fichier, stock le contenu lu dans body et met a jour le code HTTP
+// verifie si le fichier ou le dossier demande existe
+int	Response::checkFileExistence( std::string dirRoot, std::string& file )
+{
+	DIR* dir;
+    struct dirent* entry;
+	int	code = 404;
+
+std::cout << "dirRoot: " << dirRoot << "\nfile: " << file << '\n';
+    if ((dir = opendir(dirRoot.c_str())) == NULL)
+		return code;
+	std::cout << "opendir ok\n";
+	if (!file.empty())
+	{
+		std::cout << "readdir ok\n";
+    	while ((entry = readdir(dir)) != NULL)
+		{
+			std::cout << "entry name: " << entry->d_name << '\n';
+			
+			if (entry->d_name == file)
+				code = 200;
+		}
+	}
+	else
+		code = 200;
+	closedir(dir);
+	return code;
+}
+
+// lit le contenu du fichier et le stock dans body
 int	Response::makeBody( std::string path, std::string& body )
 {
-	std::ifstream file(path.c_str());
-	if (!file)
-	{
-		body = "Forbidden\r\n";
+	std::ifstream fd(path.c_str());
+	if (!fd)
 		return (403);
-	}
 	std::string line;
-	while (std::getline(file, line))
+	body.clear();
+	while (std::getline(fd, line))
 		body += line;
 	return (200);
 }
@@ -73,27 +99,29 @@ std::string	Response::findErrorPage( int code, const Server& config )
 	std::map<int, std::string>::const_iterator	it = config.errorPages.find(code);
 	if (it != config.errorPages.end())
 		path = it->second;
-	
-	std::cout << "code = " << code << '\n' << "path = " << path << '\n';
-	
 	return	path;
 }
 
-// construit une reponse HTTP standard. 
+// construit une reponse d'erreur selon les pages d'erreurs configure dans le fichier .config
 std::string	Response::buildErrorResponse( int code, const Server& config )
 {
+	std::string	body = "No Specifique Error Page found";
 	std::string path = findErrorPage( code, config );
-	std::string	body = "Error";
-	if (!path.empty() && makeBody( path, body ) != 200)
-		body = "Error";
+	if (!path.empty())
+	{
+		size_t	slash = path.find_last_of( '/', path.size() );
+		std::string root = path.substr( 0, slash + 1);
+		std::string	file = path.substr( slash + 1, path.size() );
+		if (checkFileExistence( root, file ) == 200)
+			makeBody( path, body );
+	}
 	std::string	headersBody = joinHeadersBody( config, body );
-	
-	std::cout << "headersBody = " << headersBody << '\n';
-	
 	switch (code)
 	{
 		case 400:
 			return "HTTP/1.1 400 Bad Request\r\n" + headersBody;
+		case 403:
+			return "HTTP/1.1 403 Forbidden\r\n" + headersBody;
 		case 404:
 			return "HTTP/1.1 404 Not Found\r\n" + headersBody;
 		case 405:
@@ -173,7 +201,7 @@ int	Response::executeCgi( std::string path, std::string& body )
 	int status;
 	waitpid(pid, &status, 0);
     if (WIFEXITED(status) && WEXITSTATUS(status) != 0)
-		return 500;
+		return 403;
 	code = readCgiResult( pipefd[0], body );
 	close( pipefd[0] );
 	return code;
@@ -188,18 +216,34 @@ std::string	Response::myGet( Server& config, Location& location, ResponseInfos& 
 	if (infos.locationFile.empty())	// si la demande du client se termine par un dossier
 	{
 		if (!location.index.empty())
-			response = makeBody( dirRoot + location.index, body );
+		{
+			response = checkFileExistence( dirRoot, location.index );
+			if (response == 200)
+				response = makeBody( dirRoot + location.index, body );
+		}
 		else if ( location.autoindex == "on" )
-			response = makeListing( dirRoot, body );
+		{
+			response = checkFileExistence( dirRoot, location.index );
+			if (response == 200)
+				response = makeListing( dirRoot, body );
+		}
 		else
 			return buildErrorResponse( 404, config );
 	}
 	else if (infos.locationFile.find( ".sh" ) != std::string::npos )	// si la demande concerne un script
-		response = executeCgi( dirRoot + infos.locationFile, body );
+	{
+		response = checkFileExistence( dirRoot, infos.locationFile );
+		if (response == 200)
+			response = executeCgi( dirRoot + infos.locationFile, body );
+	}
 	else
-		response =  makeBody( dirRoot + infos.locationFile, body );
+	{
+		response = checkFileExistence( dirRoot, infos.locationFile );
+		if (response == 200)
+			response =  makeBody( dirRoot + infos.locationFile, body );
+	}
 	if (response != 200)
-		buildErrorResponse( response, config );
+		return buildErrorResponse( response, config );
 	
 	std::string	headersBody = joinHeadersBody( config, body );
 	return "HTTP/1.1 200 OK\r\n" + headersBody;

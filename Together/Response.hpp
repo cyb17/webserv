@@ -6,7 +6,7 @@
 /*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/08 13:40:46 by yachen            #+#    #+#             */
-/*   Updated: 2024/07/09 18:03:31 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/10 14:13:40 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,7 @@ class	Response
 		
 		std::string getGMTDate();
 		std::string	joinHeadersBody( const Server& config, std::string& body );
+		int			checkFileExistence( std::string path, std::string& file );
 		int			makeBody( std::string path, std::string& body );
 		int 		makeListing(const std::string& dirRoot, std::string& body);
 
