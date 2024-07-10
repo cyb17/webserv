@@ -6,7 +6,7 @@
 #    By: yachen <yachen@student.42.fr>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/06/24 20:03:14 by yachen            #+#    #+#              #
-#    Updated: 2024/07/08 16:03:06 by yachen           ###   ########.fr        #
+#    Updated: 2024/07/10 15:18:15 by yachen           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -20,7 +20,7 @@ OBJ_DIR = obj
 
 SRC_DIR = ./
 
-SRC = main.cpp ConfigParser.cpp ConfigExtractor.cpp HttpServer.cpp Request.cpp Response.cpp
+SRC = main.cpp ConfigParser.cpp ConfigExtractor.cpp HttpServer.cpp Request.cpp Response.cpp ResponseTools.cpp
 
 OBJ = $(SRC:%.cpp=$(OBJ_DIR)/%.o)
 

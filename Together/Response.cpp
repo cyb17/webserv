@@ -6,7 +6,7 @@
 /*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/08 13:44:19 by yachen            #+#    #+#             */
-/*   Updated: 2024/07/10 14:20:57 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/10 16:27:02 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,96 +16,11 @@ Response::Response( char** env ) : _env( env ) {}
 
 Response::~Response() {}
 
-std::string Response::getGMTDate()
-{
-	time_t		currentTime;
-	struct tm*	timeInfos;
-	const char *days[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
-    const char *months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
-
-	time( &currentTime );
-	timeInfos = gmtime( &currentTime );
-	std::stringstream	ss;
-	
-    ss  << "Date: "
-		<< days[timeInfos->tm_wday] << ", "
-    	<< std::setfill('0') << std::setw(2) << timeInfos->tm_mday << " "
-    	<< months[timeInfos->tm_mon] << " "
-    	<< (timeInfos->tm_year + 1900) << " "
-    	<< std::setfill('0') << std::setw(2) << timeInfos->tm_hour << ":"
-    	<< std::setfill('0') << std::setw(2) << timeInfos->tm_min << ":"
-    	<< std::setfill('0') << std::setw(2) << timeInfos->tm_sec
-    	<< " GMT\r\n";
-	return ss.str();
-}
-
-std::string	Response::joinHeadersBody( const Server& config, std::string& body )
-{
-	std::stringstream	ss;
-	ss << body.length();
-	std::string	bodyLength = ss.str();
-	std::string	headersBody = 	getGMTDate() + "Server: " + config.serverName + "\r\n"
-								+ "Content-Type: text/html; charset=UTF-8\r\n"
-								+ "Content-Length: " + bodyLength + "\r\n\r\n"
-								+ body;
-	return headersBody;
-}
-
-// verifie si le fichier ou le dossier demande existe
-int	Response::checkFileExistence( std::string dirRoot, std::string& file )
-{
-	DIR* dir;
-    struct dirent* entry;
-	int	code = 404;
-
-std::cout << "dirRoot: " << dirRoot << "\nfile: " << file << '\n';
-    if ((dir = opendir(dirRoot.c_str())) == NULL)
-		return code;
-	std::cout << "opendir ok\n";
-	if (!file.empty())
-	{
-		std::cout << "readdir ok\n";
-    	while ((entry = readdir(dir)) != NULL)
-		{
-			std::cout << "entry name: " << entry->d_name << '\n';
-			
-			if (entry->d_name == file)
-				code = 200;
-		}
-	}
-	else
-		code = 200;
-	closedir(dir);
-	return code;
-}
-
-// lit le contenu du fichier et le stock dans body
-int	Response::makeBody( std::string path, std::string& body )
-{
-	std::ifstream fd(path.c_str());
-	if (!fd)
-		return (403);
-	std::string line;
-	body.clear();
-	while (std::getline(fd, line))
-		body += line;
-	return (200);
-}
-
-// trouve le path de la page d'erreur si le code a un page par defaut configure dans le ficheir .config
-std::string	Response::findErrorPage( int code, const Server& config )
-{
-	std::string	path;
-	std::map<int, std::string>::const_iterator	it = config.errorPages.find(code);
-	if (it != config.errorPages.end())
-		path = it->second;
-	return	path;
-}
 
 // construit une reponse d'erreur selon les pages d'erreurs configure dans le fichier .config
 std::string	Response::buildErrorResponse( int code, const Server& config )
 {
-	std::string	body = "No Specifique Error Page found";
+	std::string	body = "No Specific Error Page found";
 	std::string path = findErrorPage( code, config );
 	if (!path.empty())
 	{
@@ -132,28 +47,6 @@ std::string	Response::buildErrorResponse( int code, const Server& config )
 			return "HTTP/1.1 500 Internal Server Error\r\n" + headersBody;
 	}
 	return "HTTP/1.1 200 OK\r\n" + headersBody;
-}
-
-// retourne un listing des sous repertoires et fichier du dossier passe en parametre
-int Response::makeListing(const std::string& dirRoot, std::string& body)
-{
-    DIR* dir;
-    struct dirent* entry;
-
-    if ((dir = opendir(dirRoot.c_str())) == NULL)
-		return 500;
-
-    body = "<html><body><h1>Directory Listing</h1><ul>";
-    while ((entry = readdir(dir)) != NULL)
-	{
-		std::string name = entry->d_name;
-		if (name == "." || name == "..")
-		    continue;
-		body += "<li><a href=\"" + name + "\">" + name + "</a></li>";
-    }
-	closedir(dir);
-	body += "</ul></body></html>";
-	return 200;
 }
 
 // lit le resultat du script cgi, le stock dans le body et met a jour le code HTTP.
@@ -207,39 +100,27 @@ int	Response::executeCgi( std::string path, std::string& body )
 	return code;
 }
 
+// recupere une ressource demande par la requete HTTP
 std::string	Response::myGet( Server& config, Location& location, ResponseInfos& infos )
 {
 	int	response;
 	std::string	body;
 	std::string	dirRoot = config.root + infos.locationRoot;
 	
-	if (infos.locationFile.empty())	// si la demande du client se termine par un dossier
+	if (infos.locationFile.empty())	// la ressource demande est un dossier
 	{
-		if (!location.index.empty())
-		{
-			response = checkFileExistence( dirRoot, location.index );
-			if (response == 200)
+		response = checkFileExistence( dirRoot, location.index );
+		if (response == 200 && !location.index.empty())
 				response = makeBody( dirRoot + location.index, body );
-		}
-		else if ( location.autoindex == "on" )
-		{
-			response = checkFileExistence( dirRoot, location.index );
-			if (response == 200)
+		else if (response == 200 && location.autoindex == "on" )
 				response = makeListing( dirRoot, body );
-		}
-		else
-			return buildErrorResponse( 404, config );
 	}
-	else if (infos.locationFile.find( ".sh" ) != std::string::npos )	// si la demande concerne un script
+	else							// la resource demande est un fichier
 	{
 		response = checkFileExistence( dirRoot, infos.locationFile );
-		if (response == 200)
+		if (response == 200 && infos.locationFile.find( ".sh" ) != std::string::npos)
 			response = executeCgi( dirRoot + infos.locationFile, body );
-	}
-	else
-	{
-		response = checkFileExistence( dirRoot, infos.locationFile );
-		if (response == 200)
+		else if (response == 200)
 			response =  makeBody( dirRoot + infos.locationFile, body );
 	}
 	if (response != 200)
@@ -272,12 +153,12 @@ std::string	Response::buildResponse( Request& request )
 		if (j == config.location[i].allowMethods.size())
 			return buildErrorResponse( 405, config);
 		
-		// if (infos.method == "GET")
-		response = myGet( config, config.location[i], infos );
-		// else if (infos.method == "POST")
-		// 	response = myPost( config, infos );
-		// else
-		// 	response = myDelete( config, infos );
+		if (infos.method == "GET")
+			response = myGet( config, config.location[i], infos );
+		else if (infos.method == "POST")
+			response = "HTTP/1.1 200 OK\r\nPOST";//myPost( config, infos );
+		else
+			response = "HTTP/1.1 200 OK\r\nDELETE";//myDelete( config, infos );
 		
 	}
 	return (response);
