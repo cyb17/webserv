@@ -6,7 +6,7 @@
 /*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/26 15:36:30 by jp-de-to          #+#    #+#             */
-/*   Updated: 2024/07/08 16:03:36 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/11 15:33:17 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@ Request::Request( Server& configServer, Server& defaultServer ) : _defaultConfig
 
 Request::~Request() {}
 
-void	Request::printInfos()
+void	Request::printRequestInfos()
 {
 	std::cout << "REQUEST INFOS\n\n";
 	std::cout << "Code = " << _code << "\n";
@@ -43,6 +43,7 @@ void	Request::printInfos()
 	std::cout << "\n\n";
 }
 
+// check request line, headers, body length and body.
 Step	Request::parseRequest( std::string& requestLine)
 {
 	std::istringstream	request(requestLine);
@@ -101,16 +102,18 @@ bool	Request::isGoodRequestLine( std::string& requestLine)
 	std::string word;
 	while ( iss >> word )
 		lineInfo.push_back( word );
-	size_t	lastSlash = lineInfo[1].find_last_of( '/', lineInfo[1].size() );
-	if (lineInfo.size() != 3 || lastSlash == std::string::npos
-		|| (lineInfo[0] != "GET" && lineInfo[0] != "POST" && lineInfo[0] != "DELETE")
-		|| lineInfo[2] != "HTTP/1.1")
+	if (lineInfo.size() != 3 || lineInfo[2] != "HTTP/1.1"
+		|| (lineInfo[0] != "GET" && lineInfo[0] != "POST" && lineInfo[0] != "DELETE"))
 	{
 		_code = 400;
 		return false;
 	}
 	_infos.method = lineInfo[0];
 	_infos.version = lineInfo[2];
+	_infos.uri = lineInfo[1];
+	// size_t	firstSlash = lineInfo[1].find_first_of( '/', lineInfo[1].size() );
+	size_t	lastSlash = lineInfo[1].find_last_of( '/', lineInfo[1].size() );
+	// if (firstSlash == lastSlash)
 	_infos.locationRoot = lineInfo[1].substr( 0, lastSlash + 1 );
 	_infos.locationFile = lineInfo[1].substr( lastSlash + 1, lineInfo[1].length() );
 	return true;

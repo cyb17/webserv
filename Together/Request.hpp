@@ -6,7 +6,7 @@
 /*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/26 11:35:27 by jp-de-to          #+#    #+#             */
-/*   Updated: 2024/07/10 11:40:29 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/11 15:22:03 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,6 +53,7 @@ enum Step
 typedef struct ResponseInfos
 {
 	std::string	method;
+	std::string	uri;
 	std::string locationRoot;
 	std::string locationFile;
 	std::string version;
@@ -82,7 +83,7 @@ class	Request
 		Request( Server& configServer, Server& defaultServer );
 		~Request();
 
-		void		printInfos();
+		void		printRequestInfos();
 		void		printServer(Server& info);
 		Step		parseRequest( std::string& requestLine);
 

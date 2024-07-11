@@ -6,7 +6,7 @@
 /*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/08 13:44:19 by yachen            #+#    #+#             */
-/*   Updated: 2024/07/11 14:17:35 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/11 16:43:54 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -189,37 +189,41 @@ std::string	Response::myGet( Server& config, Location& location, ResponseInfos& 
 
 std::string	Response::buildResponse( Request& request, HttpServer& httpServer )
 {	
+	std::string response;
 	ResponseInfos 	infos = request.getResponseInfos();
 	Server			config = request.getServerConfig();
+	
 	if (infos.host != config.serverName)
 		config = request.getDefaultConfig();
-	
-	std::string response;
 	if (request.getCode() == 400)
 		return buildErrorResponse( 400, config);
 	else
 	{
+std::cout << "location root : " << infos.locationRoot << '\n';
+std::cout << "location file : " << infos.locationFile << '\n';
 		unsigned long i = 0;			// verifie si ce root exist dans .config
 		while (i < config.location.size() && infos.locationRoot != config.location[i].root)
 			i++;
 		if (i == config.location.size())
 			return buildErrorResponse( 404, config);
+std::cout << "redirection second: " << config.location[i].redirection.second << '\n';
+std::cout << "redirection first: " << config.location[i].redirection.first << '\n';
+std::cout << "location found\n";
+		if (!config.location[i].redirection.second.empty())	// si il existe une redirection HTTP, elle sera traite en priorite.
+		{
+			std::cout << "rentre dans la redirection\n";
+			return  "HTTP/1.1 301 Moved Permanently\r\n"
+        			"Location: " + config.location[i].redirection.second + "\r\n"
+        			"Content-Length: 0\r\n"
+        			"Connection: close\r\n"
+        			"\r\n";
+		}
 		unsigned long j = 0;			// verifie si la methode est autorise pour ce root
 		while (j < config.location[i].allowMethods.size() && infos.method != config.location[i].allowMethods[j])
 			j++;
 		if (j == config.location[i].allowMethods.size())
 			return buildErrorResponse( 405, config);
-		
-		if (!config.location[i].redirection.second.empty())	// si il existe une redirection HTTP, elle sera traite en priorite.
-		{
-			std::cout << "rentre dans la redirection\n";
-			return  "HTTP/1.1 301 Moved Permanently\r\n"
-        			"Location: http://localhost\r\n"
-        			"Content-Length: 0\r\n"
-        			"Connection: close\r\n"
-        			"\r\n";
-		}
-			// return redirectionHttp( config.location[i].redirection, config );
+std::cout << "method allowed\n";
 		
 		if (infos.method == "DELETE")
 			return myDelete(config, infos );
