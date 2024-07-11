@@ -6,7 +6,7 @@
 /*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/08 13:40:46 by yachen            #+#    #+#             */
-/*   Updated: 2024/07/10 17:32:26 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/11 14:01:26 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 #include "Request.hpp"
 #include <sys/wait.h>
 #include <dirent.h>
+#include <sys/stat.h>
 #include "HttpServer.hpp"
 
 class	HttpServer;
@@ -36,7 +37,10 @@ class	Response
 		
 		// Reponse.cpp
 		std::string	buildErrorResponse( int code, const Server& config );
+		int			deleteFolderRecursive (const std::string& dirPath);
+		std::string myDelete(Server& config, ResponseInfos& infos);
 		std::string	myGet( Server& config, Location& location, ResponseInfos& infos );
+		std::string	redirectionHttp( std::pair<int, std::string> redirection, const Server& config );
 
 		
 	public:

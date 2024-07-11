@@ -93,7 +93,7 @@ status	HttpServer::onRequestReceived(std::vector<struct pollfd>::iterator it)
 		double secs;
 		time(&now);
 		secs = difftime(now, _requestLst[it->fd].getStartTime());
-		if (secs < 120)
+		if (secs > 120)
 		{
 			std::cerr << "Error: the customer request takes too long time to finalize\n";
 			_requestLst.erase(it->fd);
