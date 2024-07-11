@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: joannpdetorres <joannpdetorres@student.    +#+  +:+       +#+        */
+/*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/08 13:40:46 by yachen            #+#    #+#             */
-/*   Updated: 2024/07/10 17:45:11 by joannpdetor      ###   ########.fr       */
+/*   Updated: 2024/07/11 14:01:26 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,10 +15,11 @@
 
 #include "Request.hpp"
 #include <sys/wait.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <dirent.h>
+#include <sys/stat.h>
+#include "HttpServer.hpp"
+
+class	HttpServer;
 
 class	Response
 {
@@ -26,28 +27,28 @@ class	Response
 	
 		char**		_env;
 		
+		// ResponseTools.cpp
 		std::string getGMTDate();
 		std::string	joinHeadersBody( const Server& config, std::string& body );
+		int			checkFileExistence( std::string path, std::string& file );
 		int			makeBody( std::string path, std::string& body );
 		int 		makeListing(const std::string& dirRoot, std::string& body);
-
 		std::string	findErrorPage( int code, const Server& config );
+		
+		// Reponse.cpp
 		std::string	buildErrorResponse( int code, const Server& config );
-
-		int			readCgiResult( int fd, std::string& body );
-		int			executeCgi( std::string path, std::string& body );
-		
-		std::string	myGet( Server& config, Location& location, ResponseInfos& infos );
-		
 		int			deleteFolderRecursive (const std::string& dirPath);
-		std::string myDelete( Server& config, ResponseInfos& infos );
+		std::string myDelete(Server& config, ResponseInfos& infos);
+		std::string	myGet( Server& config, Location& location, ResponseInfos& infos );
+		std::string	redirectionHttp( std::pair<int, std::string> redirection, const Server& config );
+
 		
 	public:
 
 		Response( char** env );
 		~Response();
 
-		std::string	buildResponse( Request& request );
+		std::string	buildResponse( Request& request, HttpServer& httpServer );
 
 };
 
