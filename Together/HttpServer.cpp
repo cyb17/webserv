@@ -45,11 +45,15 @@ void    HttpServer::setupAllServers()
 			exitError("socket", res, 1);
 		
 		if (bind(serverSocket, res->ai_addr, res->ai_addrlen) == -1)
+		{
+			close( serverSocket );
 			exitError("bind", res, 1);
-		
+		}
 		if (listen(serverSocket, BACKLOG) == -1)
+		{
+			close( serverSocket );
 			exitError("listen", res, 1);
-
+		}
 		pollfd serverFd = {serverSocket, POLLIN, 0};
 		_listSockets.push_back(serverFd);
 		_infoServerLst[serverSocket] = _serverConfigLst[i];
@@ -82,6 +86,7 @@ status	HttpServer::onRequestReceived(std::vector<struct pollfd>::iterator it)
 		return (DISCONNECT);
 	buffer[len] = '\0';
 	std::string tmp(buffer);
+std::cout << "request: " << tmp << '\n';	
 	if (_requestLst.empty() || _requestLst.find(it->fd) == _requestLst.end())
 	{	
 		Request request(_infoClientLst[it->fd], _serverConfigLst[0]);
@@ -159,23 +164,46 @@ int	HttpServer::readCgiResult( int fd, std::string& body )
         body.append(buffer, bytesRead);
 		bytesRead = read(fd, buffer, bufferSize);
 	}
+	std::cout << "body: " << body << '\n';
     if (bytesRead == -1)
         return 500;
     return 200;
+}
+
+void	HttpServer::closeAllsSockets()
+{
+	while (!_listSockets.empty())
+	{
+		close( _listSockets.front().fd );
+		_listSockets.erase( _listSockets.begin() );
+	}
 }
 
 // cree un processus enfant pour executer le script externe, mettre a jour body le code HTTP.
 int	HttpServer::executeCgi( std::string path, std::string& body )
 {
 	int	code = 200;
-	int	pipefd[2];
+	int	pipefd[2], status[2];
 	if (pipe( pipefd ) == -1)
 		return 500;
+	if (pipe( status ) == -1)
+	{
+		close( pipefd[1] );
+		close( pipefd[0] );
+		return 500;
+	}
 	pid_t	pid = fork();
 	if (pid == -1)
+	{
+		close( pipefd[1] );
+		close( pipefd[0] );
+		close( status[1] );
+		close( status[0] );
 		return 500;
+	}
 	else if (pid == 0)
 	{
+		close(status[0]);
 		close( STDIN_FILENO );
 		close( pipefd[0] );
 		dup2( pipefd[1], STDOUT_FILENO );
@@ -183,16 +211,23 @@ int	HttpServer::executeCgi( std::string path, std::string& body )
 		const char*	argv[] = { path.c_str(), NULL };
 		if (execve( path.c_str(), (char* const* )argv, _env ) == -1)
 		{
-			close( STDOUT_FILENO );
-			exit(1);
+			closeAllsSockets();
+			dup2( status[1], STDOUT_FILENO );
+			std::cout << "1";
+			close( status[1] );
+			throw std::runtime_error( "execve failed" );
 		}
 	}
 	close( pipefd[1] );
-	int status;
-	waitpid(pid, &status, 0);
-    if (WIFEXITED(status) && WEXITSTATUS(status) != 0)
-		return 403;
-	code = readCgiResult( pipefd[0], body );
+	close( status[1] );
+	std::string	childExitStatus;
+	readCgiResult( status[0], childExitStatus );
+	std::cout << "child exit status: " << childExitStatus << '\n';
+	if (childExitStatus.empty())
+		code = readCgiResult( pipefd[0], body );
+	else
+		code = 403;
+	close( status[0] );
 	close( pipefd[0] );
 	return code;
 }

@@ -27,5 +27,6 @@ int	main( int argc, char** argv, char** env )
 	{
 		std::cout << "Error: " << e.what() << std::endl;
 	}
+	catch (std::runtime_error& ex) {}
 	return 0;
 }

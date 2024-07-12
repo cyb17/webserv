@@ -6,7 +6,7 @@
 /*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/26 15:36:30 by jp-de-to          #+#    #+#             */
-/*   Updated: 2024/07/11 15:33:17 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/12 10:39:36 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -110,10 +110,7 @@ bool	Request::isGoodRequestLine( std::string& requestLine)
 	}
 	_infos.method = lineInfo[0];
 	_infos.version = lineInfo[2];
-	_infos.uri = lineInfo[1];
-	// size_t	firstSlash = lineInfo[1].find_first_of( '/', lineInfo[1].size() );
 	size_t	lastSlash = lineInfo[1].find_last_of( '/', lineInfo[1].size() );
-	// if (firstSlash == lastSlash)
 	_infos.locationRoot = lineInfo[1].substr( 0, lastSlash + 1 );
 	_infos.locationFile = lineInfo[1].substr( lastSlash + 1, lineInfo[1].length() );
 	return true;

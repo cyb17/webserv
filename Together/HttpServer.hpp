@@ -6,7 +6,7 @@
 /*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/24 13:33:43 by joannpdetor       #+#    #+#             */
-/*   Updated: 2024/07/10 17:26:29 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/12 11:19:44 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,6 +53,7 @@ class HttpServer
 		int		readCgiResult( int fd, std::string& body );
 		void 	diplayMsgError(const char *err);
 		void 	exitError(std::string err, addrinfo *res, int i);
+		void	closeAllsSockets();
 		
 		public :
 			
