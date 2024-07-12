@@ -6,7 +6,7 @@
 /*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/26 15:36:30 by jp-de-to          #+#    #+#             */
-/*   Updated: 2024/07/12 10:39:36 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/12 18:11:39 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,6 +75,7 @@ Step	Request::parseRequest( std::string& requestLine)
 	}
 	if (_step == body)
 	{
+std::cout << "body len request : " << _infos.bodyLengthRequest << '\n';
 		if (_infos.bodyLengthRequest <= 0)
 			return (_code = 400, _step = complete);
 		while (std::getline(request, line))
@@ -86,6 +87,7 @@ Step	Request::parseRequest( std::string& requestLine)
 			if (_infos.body.empty() && line == "\r")
 				return (_code = 400, _step = complete);
 			_infos.body.push_back(line);
+std::cout << "bodylen : " << _infos.bodyLen << '\n';
 			if (_infos.bodyLen > _infos.bodyLengthRequest || _infos.bodyLen > _configServer.clientMaxBodySize)
 				return (_code = 400, _step = complete);
 			else if (_infos.bodyLen== _infos.bodyLengthRequest)
@@ -136,7 +138,7 @@ bool	Request::isGoodHeaders( std::vector<std::string>& headers )
 		}
 		else if (line[0] == "Content-Type:" && _infos.method == "POST" )
 			contentType = 1;
-		else if (contentType && line[0] == "Content-Length:")
+		else if (line[0] == "Content-Length:")
 		{
 			if (line.size() != 2)
 				return (_code = 400, false);
@@ -146,9 +148,10 @@ bool	Request::isGoodHeaders( std::vector<std::string>& headers )
 					return (_code = 400, false);
 			}
 			_infos.bodyLengthRequest = atoi(word.c_str());
+			std::cout << "header bodylength: " << _infos.bodyLengthRequest << '\n';
 		}
 	}
-	if (_infos.host.empty())
+	if (_infos.host.empty() || (contentType == 0 && _infos.bodyLengthRequest > -1) )
 		return (_code = 400, false);
 	return (true);
 }
