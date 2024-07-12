@@ -80,8 +80,8 @@ void	HttpServer::acceptNewConnexion(int serverSocket, Server& info)
 status	HttpServer::onRequestReceived(std::vector<struct pollfd>::iterator it)
 {
 	int	len;
-	char buffer[1024];
-	len = recv(it->fd, buffer, 1024, 0);
+	char buffer[50000];
+	len = recv(it->fd, buffer, 50000, 0);
 	if (len <= 0)
 		return (DISCONNECT);
 	buffer[len] = '\0';
