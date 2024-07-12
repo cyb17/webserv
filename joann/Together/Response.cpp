@@ -6,7 +6,7 @@
 /*   By: jp-de-to <jp-de-to@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/08 13:44:19 by yachen            #+#    #+#             */
-/*   Updated: 2024/07/11 17:15:09 by jp-de-to         ###   ########.fr       */
+/*   Updated: 2024/07/12 14:05:43 by jp-de-to         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -88,27 +88,27 @@ int	Response::deleteFolderRecursive (const std::string& dirPath)
 std::string Response::myDelete(Server& config, ResponseInfos& infos)
 {
 	std::string	body;
-	std::string	dirRoot = config.root + infos.locationRoot;
-	std::cout << "location root: " << dirRoot << '\n';
-	std::cout << "location file: " << infos.locationFile << '\n';
-
-	DIR* dir;
-	if ((dir = opendir(dirRoot.c_str())) == NULL)
-		return buildErrorResponse(403, config);
-	if (infos.locationFile.empty())
+	std::string	path = config.root + infos.locationRoot + infos.locationFile;
+	
+	struct stat buff;
+	if (stat(path.c_str(), &buff) == 0)
 	{
-		int code = deleteFolderRecursive(dirRoot);
-		if (code != 200)
-			return (buildErrorResponse(code, config));
-		body = "Directory deleted.\r\n";
+		if (S_ISDIR(buff.st_mode))
+		{
+			int code = deleteFolderRecursive(path);
+			if (code != 200)
+				return (buildErrorResponse(code, config));
+			body = "Directory deleted.\r\n";
+		}
+		else
+		{
+			if (remove(path.c_str()) != 0)
+				return (buildErrorResponse(500, config));
+			body = "File deleted.\r\n";
+		}
 	}
-	else
-	{
-		std::string file = dirRoot + infos.locationFile;
-		if (remove(file.c_str()) != 0)
-			return (buildErrorResponse(500, config));
-		body = "File deleted.\r\n";
-	}
+	else 
+		return (buildErrorResponse(500, config));
 	std::string	headersBody = joinHeadersBody(config, body);
 	return "HTTP/1.1 200 OK\r\n" + headersBody;
 }
@@ -192,19 +192,12 @@ std::string	Response::buildResponse( Request& request, HttpServer& httpServer )
 	ResponseInfos 	infos = request.getResponseInfos();
 	Server			config = request.getServerConfig();
 	
-	std::string host;
-	if (config.host == "127.0.0.1")
-	{
-		if (infos.host != config.host + ':' + config.listen || infos.host != "localhost:" + config.listen)
-			config = request.getDefaultConfig();
-	}
-	else
-	{
-		if (infos.host != config.host + ':' + config.listen)
-			config = request.getDefaultConfig();
-	}
+	std::string host = config.host + ':' + config.listen;
+	if (config.host == "127.0.0.1" && infos.host != host && infos.host != "localhost:" + config.listen)
+		config = request.getDefaultConfig();
+	else if (infos.host != host)
+		config = request.getDefaultConfig();
 		
-	
 	std::string response;
 	if (request.getCode() == 400)
 		return buildErrorResponse( 400, config);
