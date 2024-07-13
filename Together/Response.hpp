@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
+/*   By: joannpdetorres <joannpdetorres@student.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/08 13:40:46 by yachen            #+#    #+#             */
-/*   Updated: 2024/07/12 10:23:38 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/13 16:15:41 by joannpdetor      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,7 @@ class	Response
 	private:
 	
 		char**		_env;
-		
+	
 		// ResponseTools.cpp
 		std::string getGMTDate();
 		std::string	joinHeadersBody( const Server& config, std::string& body );
@@ -35,14 +35,13 @@ class	Response
 		int 		makeListing(const std::string& dirRoot, std::string& body);
 		std::string	findErrorPage( int code, const Server& config );
 		
-		// Reponse.cpp
+		// Response.cpp
 		std::string	buildErrorResponse( int code, const Server& config );
 		int			deleteFolderRecursive (const std::string& dirPath);
 		std::string myDelete(Server& config, ResponseInfos& infos);
 		std::string	myGet( Server& config, Location& location, ResponseInfos& infos );
 		std::string	redirectionHttp( std::pair<int, std::string> redirection );
-
-		
+	
 	public:
 
 		Response( char** env );

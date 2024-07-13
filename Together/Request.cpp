@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
+/*   By: joannpdetorres <joannpdetorres@student.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/26 15:36:30 by jp-de-to          #+#    #+#             */
-/*   Updated: 2024/07/12 18:11:39 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/13 17:16:22 by joannpdetor      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,26 +22,6 @@ Request::Request( Server& configServer, Server& defaultServer ) : _defaultConfig
 }
 
 Request::~Request() {}
-
-void	Request::printRequestInfos()
-{
-	std::cout << "REQUEST INFOS\n\n";
-	std::cout << "Code = " << _code << "\n";
-	std::cout << "* method = " << _infos.method << "\n";
-	std::cout << "* locationRoot = " << _infos.locationRoot << "\n";
-	std::cout << "* locationFile = " << _infos.locationFile << "\n";
-	std::cout << "* version = " << _infos.version << "\n";
-	std::cout << "* host = " << _infos.host << "\n";
-	if (_infos.body.size() > 0)
-	for (unsigned long i = 0; i << _infos.body.size(); ++i)
-	{
-		if (i == 0)
-			std::cout << "* body = " << _infos.body[i] << "\n";
-		else
-			std::cout << "         " << _infos.body[i] << "\n";
-	}
-	std::cout << "\n\n";
-}
 
 // check request line, headers, body length and body.
 Step	Request::parseRequest( std::string& requestLine)
@@ -75,7 +55,6 @@ Step	Request::parseRequest( std::string& requestLine)
 	}
 	if (_step == body)
 	{
-std::cout << "body len request : " << _infos.bodyLengthRequest << '\n';
 		if (_infos.bodyLengthRequest <= 0)
 			return (_code = 400, _step = complete);
 		while (std::getline(request, line))
@@ -87,11 +66,14 @@ std::cout << "body len request : " << _infos.bodyLengthRequest << '\n';
 			if (_infos.body.empty() && line == "\r")
 				return (_code = 400, _step = complete);
 			_infos.body.push_back(line);
-std::cout << "bodylen : " << _infos.bodyLen << '\n';
 			if (_infos.bodyLen > _infos.bodyLengthRequest || _infos.bodyLen > _configServer.clientMaxBodySize)
 				return (_code = 400, _step = complete);
-			else if (_infos.bodyLen== _infos.bodyLengthRequest)
+			else if (_infos.bodyLen == _infos.bodyLengthRequest)
+			{
+				if (_infos.contentType == "application/x-www-form-urlencoded")
+					_infos.queryString = _infos.body[0];
 				return (_step = complete);
+			}
 		}
 	}
 	return (_step);
@@ -122,7 +104,6 @@ bool	Request::isGoodHeaders( std::vector<std::string>& headers )
 {
 	if (headers.empty())
 		return (_code = 400, false);
-	int contentType = 0;
 	for (unsigned long i = 0; i < headers.size(); ++i)
 	{
 		std::istringstream iss(headers[i]);
@@ -137,21 +118,25 @@ bool	Request::isGoodHeaders( std::vector<std::string>& headers )
 			_infos.host = word;
 		}
 		else if (line[0] == "Content-Type:" && _infos.method == "POST" )
-			contentType = 1;
+		{
+			if (line[1] == "application/x-www-form-urlencoded" 
+				|| line[1] == "multipart/form-data")
+				_infos.contentType = line[1];
+		}
 		else if (line[0] == "Content-Length:")
 		{
 			if (line.size() != 2)
 				return (_code = 400, false);
 			for (unsigned long i = 0; i < line[1].size(); ++i)
 			{
-				if (!isdigit(word[i]) || (line[1].size() == 1 && word[0] == '0'))
+				if (!isdigit(line[1][0]) || (line[1].size() == 1 && word[0] == '0'))
 					return (_code = 400, false);
 			}
+			_infos.contentLength = line[1];
 			_infos.bodyLengthRequest = atoi(word.c_str());
-			std::cout << "header bodylength: " << _infos.bodyLengthRequest << '\n';
 		}
 	}
-	if (_infos.host.empty() || (contentType == 0 && _infos.bodyLengthRequest > -1) )
+	if (_infos.host.empty() || (_infos.contentType.empty() && _infos.bodyLengthRequest > -1) )
 		return (_code = 400, false);
 	return (true);
 }
@@ -161,3 +146,24 @@ time_t			Request::getStartTime() { return (_startTime); }
 ResponseInfos	Request::getResponseInfos() { return (_infos); }
 Server 			Request::getDefaultConfig() { return (_defaultConfigServer); }
 Server			Request::getServerConfig()  { return (_configServer); }
+
+
+void	Request::printRequestInfos()
+{
+	std::cout << "REQUEST INFOS\n\n";
+	std::cout << "Code = " << _code << "\n";
+	std::cout << "* method = " << _infos.method << "\n";
+	std::cout << "* locationRoot = " << _infos.locationRoot << "\n";
+	std::cout << "* locationFile = " << _infos.locationFile << "\n";
+	std::cout << "* version = " << _infos.version << "\n";
+	std::cout << "* host = " << _infos.host << "\n";
+	if (_infos.body.size() > 0)
+	for (unsigned long i = 0; i << _infos.body.size(); ++i)
+	{
+		if (i == 0)
+			std::cout << "* body = " << _infos.body[i] << "\n";
+		else
+			std::cout << "         " << _infos.body[i] << "\n";
+	}
+	std::cout << "\n\n";
+}

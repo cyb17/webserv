@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
+/*   By: joannpdetorres <joannpdetorres@student.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/08 13:44:19 by yachen            #+#    #+#             */
-/*   Updated: 2024/07/12 14:44:54 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/13 19:32:25 by joannpdetor      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,7 +57,6 @@ int	Response::deleteFolderRecursive (const std::string& dirPath)
 	struct dirent *entry;
 	while ((entry = readdir(dir)) != NULL)
 	{
-		std::cout << "ok boucle\n";
         std::string tmp(entry->d_name);
 		if (tmp.compare(".") == 0 || tmp.compare("..") == 0)
 			continue ;
@@ -68,7 +67,6 @@ int	Response::deleteFolderRecursive (const std::string& dirPath)
 			if (S_ISDIR(buff.st_mode))
 			{
 				int code = deleteFolderRecursive(tmp);
-				std::cout << "ok boucle code: "<< code << '\n';
 				if (code != 200)
 					return (closedir(dir), code);
 			}
@@ -181,13 +179,10 @@ std::string	Response::buildResponse( Request& request, HttpServer& httpServer )
 			j++;
 		if (j == config.location[i].allowMethods.size())
 			return buildErrorResponse( 405, config);
-		
-		std::cout << "location root: " << infos.locationRoot << '\n';
-		std::cout << "location file: " << infos.locationFile << '\n';
 
 		if (infos.method == "DELETE")
 			return myDelete(config, infos );
-		else if (!infos.locationFile.empty() && infos.locationFile.find( ".sh" ) != std::string::npos )	//  le client demande a executer un script cgi
+		/*else if (!infos.locationFile.empty() && infos.locationFile.find( ".sh" ) != std::string::npos )	//  le client demande a executer un script cgi
 		{
 			int	code = checkFileExistence( config.root + infos.locationRoot, infos.locationFile );
 			if (code != 200)
@@ -198,11 +193,21 @@ std::string	Response::buildResponse( Request& request, HttpServer& httpServer )
 			if (code != 200)
 				return buildErrorResponse( code, config );
 			response = "HTTP/1.1 200 OK\r\n" + joinHeadersBody( config, body );
-		}
+		}*/
 		else if (infos.method == "GET")
-			response = myGet( config, config.location[i], infos );
+			response = myGet( config, config.location[1], infos );
 		else if (infos.method == "POST")
-			response = "HTTP/1.1 200 OK\r\nPOST";
+		{
+			int	code = checkFileExistence( config.root + infos.locationRoot, infos.locationFile );
+			if (code != 200)
+				return buildErrorResponse( code, config );
+			std::string	body;
+			int code = httpServer.executeCgi( "website/cgi-bin/cgi.py", body );
+			std::cout << code << '\n';
+			if (code != 200)
+				return buildErrorResponse( code, config );
+			response = "HTTP/1.1 200 OK\r\n" + joinHeadersBody( config, body );
+		}
 	}
 	return (response);
 }

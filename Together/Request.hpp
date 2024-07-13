@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
+/*   By: joannpdetorres <joannpdetorres@student.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/26 11:35:27 by jp-de-to          #+#    #+#             */
-/*   Updated: 2024/07/12 18:03:45 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/13 17:08:12 by joannpdetor      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,6 +59,9 @@ typedef struct ResponseInfos
 	std::string locationFile;
 	std::string version;
 	std::string host;
+	std::string contentType;
+	std::string contentLength;
+	std::string queryString;
 	int 		bodyLengthRequest;
 	int			bodyLen;
 	std::vector<std::string> body;
@@ -85,7 +88,7 @@ class	Request
 		~Request();
 
 		void		printRequestInfos();
-		void		printServer(Server& info);
+		//void		printServer(Server& info);
 		Step		parseRequest( std::string& requestLine);
 
 		//GETTERS

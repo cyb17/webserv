@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpServer.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
+/*   By: joannpdetorres <joannpdetorres@student.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/24 13:33:43 by joannpdetor       #+#    #+#             */
-/*   Updated: 2024/07/12 11:19:44 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/13 16:50:19 by joannpdetor      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,6 +50,8 @@ class HttpServer
 
 		void	acceptNewConnexion(int serverSocket, Server& info);
 		status	onRequestReceived(std::vector<struct pollfd>::iterator it);
+		void	createEnvCGI(ResponseInfos infos);
+		void	freeEnv();
 		int		readCgiResult( int fd, std::string& body );
 		void 	diplayMsgError(const char *err);
 		void 	exitError(std::string err, addrinfo *res, int i);

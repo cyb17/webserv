@@ -18,6 +18,22 @@ HttpServer::HttpServer(std::vector<Server>& extract, char** env) : _serverConfig
 
 HttpServer::~HttpServer() {}
 
+int set_nonblocking(int sockfd) {
+    int flags = fcntl(sockfd, F_GETFL, 0);
+    if (flags == -1) {
+        perror("fcntl F_GETFL");
+        return -1;
+    }
+
+    flags |= O_NONBLOCK;
+    if (fcntl(sockfd, F_SETFL, flags) == -1) {
+        perror("fcntl F_SETFL");
+        return -1;
+    }
+
+    return 0;
+}
+
 /*SETUP ALL SERVERS
 Creer une boucle qui va creer une socket en mode ecoute pour chaque serveur indique
 dans le fichier de configuration :
@@ -40,10 +56,10 @@ void    HttpServer::setupAllServers()
 		if (getaddrinfo(_serverConfigLst[i].host.c_str(), _serverConfigLst[i].listen.c_str() , &hints, &res) != 0)
 			exitError("getaddrinfo", res, 0);
 
-		int serverSocket = socket(res->ai_family,res->ai_socktype | SOCK_NONBLOCK, res->ai_protocol);
+		int serverSocket = socket(res->ai_family,res->ai_socktype /*| SOCK_NONBLOCK*/, res->ai_protocol);
 		if (serverSocket == -1)
 			exitError("socket", res, 1);
-		
+		set_nonblocking(serverSocket);
 		if (bind(serverSocket, res->ai_addr, res->ai_addrlen) == -1)
 		{
 			close( serverSocket );
@@ -77,6 +93,28 @@ void	HttpServer::acceptNewConnexion(int serverSocket, Server& info)
 	_infoClientLst[clientSocket] = info;	// associe la config serveur au socket client qui sera utile pour analyser la requete client.
 }
 
+void	HttpServer::createEnvCGI(ResponseInfos infos)
+{
+	const int envSize = 6;
+	_env = new char*[envSize];
+	std::string var[envSize - 1] = { "REQUEST_METHOD=" + infos.method,
+        							"PATH_INFO=" + infos.locationRoot + infos.locationFile,
+       								"CONTENT_TYPE=" + infos.contentType,
+        							"CONTENT_LENGTH=" + infos.contentLength,
+        							"QUERY_STRING=" + infos.queryString };
+	
+	for (int i = 0; i < envSize - 1; ++i) 
+    	_env[i] = strdup(var[i].c_str());
+    _env[envSize - 1] = NULL;
+}
+
+void HttpServer::freeEnv() 
+{
+    for (int i = 0; _env[i] != NULL; ++i) 
+        delete[] _env[i];
+    delete[] _env;
+}
+
 status	HttpServer::onRequestReceived(std::vector<struct pollfd>::iterator it)
 {
 	int	len;
@@ -99,21 +137,22 @@ std::cout << "request: " << tmp << '\n';
 		time(&now);
 		secs = difftime(now, _requestLst[it->fd].getStartTime());
 		if (secs > 120)
-		{
-			std::cerr << "Error: the customer request takes too long time to finalize\n";
-			_requestLst.erase(it->fd);
-			return (DISCONNECT);
-		}
+			return (_requestLst.erase(it->fd), DISCONNECT);
 		return (CONNECT);
 	}
 	if (it->revents & POLLOUT)
 	{
+		createEnvCGI(_requestLst[it->fd].getResponseInfos());
+		std::cout << "Env:\n";
+		for (int i = 0; _env[i] != NULL; ++i) 
+			std::cout << _env[i] << "\n";
 		Response	response( _env );
 		std::string str = response.buildResponse( _requestLst[it->fd], *this );
 		int	bytesent = send( it->fd, str.c_str(), str.size(), 0 );
 		if (bytesent == -1)
 			diplayMsgError("send");
 	}
+	freeEnv();
 	_requestLst.erase(it->fd);
 	return (DISCONNECT);
 }
@@ -154,7 +193,7 @@ void	HttpServer::runAllServers()
 // lit le resultat du script cgi, le stock dans le body et met a jour le code HTTP.
 int	HttpServer::readCgiResult( int fd, std::string& body )
 {
-	const size_t bufferSize = 10;
+	const size_t bufferSize = 1024;
     char	buffer[bufferSize];
     ssize_t bytesRead;
     body.clear();
@@ -213,7 +252,6 @@ int	HttpServer::executeCgi( std::string path, std::string& body )
 		{
 			closeAllsSockets();
 			dup2( status[1], STDOUT_FILENO );
-			std::cout << "1";
 			close( status[1] );
 			throw std::runtime_error( "execve failed" );
 		}
