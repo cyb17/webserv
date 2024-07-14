@@ -2,7 +2,7 @@
 #include "ConfigParser.hpp"
 #include "ConfigExtractor.hpp"
 
-int	main( int argc, char** argv, char** env )
+int	main( int argc, char** argv )
 {
 	if (argc != 2)
 	{
@@ -19,7 +19,7 @@ int	main( int argc, char** argv, char** env )
 		extrac.fillServerList( file.getTokenList() );
 		// extrac.printServerList();
 
-		HttpServer servers(extrac.getServerList(), env);
+		HttpServer servers(extrac.getServerList());
 		servers.setupAllServers();
 		servers.runAllServers();
 	}

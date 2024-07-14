@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: joannpdetorres <joannpdetorres@student.    +#+  +:+       +#+        */
+/*   By: jp-de-to <jp-de-to@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/08 13:44:19 by yachen            #+#    #+#             */
-/*   Updated: 2024/07/13 19:32:25 by joannpdetor      ###   ########.fr       */
+/*   Updated: 2024/07/14 11:19:43 by jp-de-to         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -195,15 +195,11 @@ std::string	Response::buildResponse( Request& request, HttpServer& httpServer )
 			response = "HTTP/1.1 200 OK\r\n" + joinHeadersBody( config, body );
 		}*/
 		else if (infos.method == "GET")
-			response = myGet( config, config.location[1], infos );
+			response = myGet( config, config.location[i], infos );
 		else if (infos.method == "POST")
 		{
-			int	code = checkFileExistence( config.root + infos.locationRoot, infos.locationFile );
-			if (code != 200)
-				return buildErrorResponse( code, config );
 			std::string	body;
-			int code = httpServer.executeCgi( "website/cgi-bin/cgi.py", body );
-			std::cout << code << '\n';
+			int code = httpServer.executeCgi( config.root + config.location[i].root + infos.locationFile, body );
 			if (code != 200)
 				return buildErrorResponse( code, config );
 			response = "HTTP/1.1 200 OK\r\n" + joinHeadersBody( config, body );

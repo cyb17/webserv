@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpServer.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: joannpdetorres <joannpdetorres@student.    +#+  +:+       +#+        */
+/*   By: jp-de-to <jp-de-to@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/24 13:33:43 by joannpdetor       #+#    #+#             */
-/*   Updated: 2024/07/13 16:50:19 by joannpdetor      ###   ########.fr       */
+/*   Updated: 2024/07/14 08:56:31 by jp-de-to         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 # define HTTPSERVER_HPP
 
 # include <sys/socket.h>
+# include <cstring>
 # include <cstdlib>
 # include <iostream>
 # include <string.h>
@@ -59,7 +60,7 @@ class HttpServer
 		
 		public :
 			
-			HttpServer(std::vector<Server>& extract, char** env);
+			HttpServer(std::vector<Server>& extract);
 			~HttpServer();
 			
 			void 	setupAllServers();

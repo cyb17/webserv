@@ -14,25 +14,9 @@
 
 #include "HttpServer.hpp"
 
-HttpServer::HttpServer(std::vector<Server>& extract, char** env) : _serverConfigLst(extract), _env(env) {}
+HttpServer::HttpServer(std::vector<Server>& extract) : _serverConfigLst(extract) {}
 
 HttpServer::~HttpServer() {}
-
-int set_nonblocking(int sockfd) {
-    int flags = fcntl(sockfd, F_GETFL, 0);
-    if (flags == -1) {
-        perror("fcntl F_GETFL");
-        return -1;
-    }
-
-    flags |= O_NONBLOCK;
-    if (fcntl(sockfd, F_SETFL, flags) == -1) {
-        perror("fcntl F_SETFL");
-        return -1;
-    }
-
-    return 0;
-}
 
 /*SETUP ALL SERVERS
 Creer une boucle qui va creer une socket en mode ecoute pour chaque serveur indique
@@ -56,10 +40,9 @@ void    HttpServer::setupAllServers()
 		if (getaddrinfo(_serverConfigLst[i].host.c_str(), _serverConfigLst[i].listen.c_str() , &hints, &res) != 0)
 			exitError("getaddrinfo", res, 0);
 
-		int serverSocket = socket(res->ai_family,res->ai_socktype /*| SOCK_NONBLOCK*/, res->ai_protocol);
+		int serverSocket = socket(res->ai_family,res->ai_socktype | SOCK_NONBLOCK, res->ai_protocol);
 		if (serverSocket == -1)
 			exitError("socket", res, 1);
-		set_nonblocking(serverSocket);
 		if (bind(serverSocket, res->ai_addr, res->ai_addrlen) == -1)
 		{
 			close( serverSocket );
@@ -95,24 +78,33 @@ void	HttpServer::acceptNewConnexion(int serverSocket, Server& info)
 
 void	HttpServer::createEnvCGI(ResponseInfos infos)
 {
-	const int envSize = 6;
+	const int envSize = 8;
 	_env = new char*[envSize];
 	std::string var[envSize - 1] = { "REQUEST_METHOD=" + infos.method,
         							"PATH_INFO=" + infos.locationRoot + infos.locationFile,
        								"CONTENT_TYPE=" + infos.contentType,
         							"CONTENT_LENGTH=" + infos.contentLength,
-        							"QUERY_STRING=" + infos.queryString };
-	
+        							"QUERY_STRING=" + infos.queryString,
+									"FILENAME=" + infos.fileName,
+									"FILEBODY=" + infos.fileBody };
 	for (int i = 0; i < envSize - 1; ++i) 
-    	_env[i] = strdup(var[i].c_str());
-    _env[envSize - 1] = NULL;
+	{
+        _env[i] = new char[var[i].size() + 1]; 
+        std::strcpy(_env[i], var[i].c_str());
+	}
+	_env[envSize - 1] = NULL;
 }
 
 void HttpServer::freeEnv() 
 {
-    for (int i = 0; _env[i] != NULL; ++i) 
-        delete[] _env[i];
-    delete[] _env;
+	if (_env)
+	{
+    	for (int i = 0; _env[i] != NULL; ++i)
+		{
+    	    delete[] _env[i];
+		}
+		delete[] _env;
+	}
 }
 
 status	HttpServer::onRequestReceived(std::vector<struct pollfd>::iterator it)
@@ -124,7 +116,7 @@ status	HttpServer::onRequestReceived(std::vector<struct pollfd>::iterator it)
 		return (DISCONNECT);
 	buffer[len] = '\0';
 	std::string tmp(buffer);
-std::cout << "request: " << tmp << '\n';	
+	std::cout << "request: " << tmp << '\n';	
 	if (_requestLst.empty() || _requestLst.find(it->fd) == _requestLst.end())
 	{	
 		Request request(_infoClientLst[it->fd], _serverConfigLst[0]);
@@ -143,9 +135,11 @@ std::cout << "request: " << tmp << '\n';
 	if (it->revents & POLLOUT)
 	{
 		createEnvCGI(_requestLst[it->fd].getResponseInfos());
-		std::cout << "Env:\n";
-		for (int i = 0; _env[i] != NULL; ++i) 
-			std::cout << _env[i] << "\n";
+		std::cout << "ENV:\n"; 
+		for (int i = 0; i < 8; i++)
+		{
+			std::cout << _env[i] << "\n";	
+		}
 		Response	response( _env );
 		std::string str = response.buildResponse( _requestLst[it->fd], *this );
 		int	bytesent = send( it->fd, str.c_str(), str.size(), 0 );
@@ -251,6 +245,7 @@ int	HttpServer::executeCgi( std::string path, std::string& body )
 		if (execve( path.c_str(), (char* const* )argv, _env ) == -1)
 		{
 			closeAllsSockets();
+			freeEnv();
 			dup2( status[1], STDOUT_FILENO );
 			close( status[1] );
 			throw std::runtime_error( "execve failed" );

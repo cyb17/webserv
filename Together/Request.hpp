@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: joannpdetorres <joannpdetorres@student.    +#+  +:+       +#+        */
+/*   By: jp-de-to <jp-de-to@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/26 11:35:27 by jp-de-to          #+#    #+#             */
-/*   Updated: 2024/07/13 17:08:12 by joannpdetor      ###   ########.fr       */
+/*   Updated: 2024/07/14 11:24:16 by jp-de-to         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,10 +61,14 @@ typedef struct ResponseInfos
 	std::string host;
 	std::string contentType;
 	std::string contentLength;
-	std::string queryString;
 	int 		bodyLengthRequest;
 	int			bodyLen;
 	std::vector<std::string> body;
+	//formulaire
+	std::string queryString;
+	//fichier televerse
+	std::string	fileName;
+	std::string fileBody;
 } ResponsesInfos;
 
 class	Request
@@ -80,6 +84,7 @@ class	Request
 			
 		bool		isGoodRequestLine( std::string& requestLine );
 		bool		isGoodHeaders( std::vector<std::string>& headers );
+		void		addInfos();
 
 	public:
 

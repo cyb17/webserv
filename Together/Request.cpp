@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: joannpdetorres <joannpdetorres@student.    +#+  +:+       +#+        */
+/*   By: jp-de-to <jp-de-to@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/26 15:36:30 by jp-de-to          #+#    #+#             */
-/*   Updated: 2024/07/13 17:16:22 by joannpdetor      ###   ########.fr       */
+/*   Updated: 2024/07/14 12:07:21 by jp-de-to         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,7 +55,7 @@ Step	Request::parseRequest( std::string& requestLine)
 	}
 	if (_step == body)
 	{
-		if (_infos.bodyLengthRequest <= 0)
+		if (_infos.bodyLengthRequest <= 0 || _infos.bodyLengthRequest > _configServer.clientMaxBodySize)
 			return (_code = 400, _step = complete);
 		while (std::getline(request, line))
 		{
@@ -66,17 +66,42 @@ Step	Request::parseRequest( std::string& requestLine)
 			if (_infos.body.empty() && line == "\r")
 				return (_code = 400, _step = complete);
 			_infos.body.push_back(line);
-			if (_infos.bodyLen > _infos.bodyLengthRequest || _infos.bodyLen > _configServer.clientMaxBodySize)
-				return (_code = 400, _step = complete);
-			else if (_infos.bodyLen == _infos.bodyLengthRequest)
+			if (_infos.bodyLen == _infos.bodyLengthRequest)
 			{
-				if (_infos.contentType == "application/x-www-form-urlencoded")
-					_infos.queryString = _infos.body[0];
+				addInfos();
 				return (_step = complete);
 			}
 		}
 	}
 	return (_step);
+}
+
+void	Request::addInfos()
+{
+	if (_infos.contentType == "application/x-www-form-urlencoded")
+		_infos.queryString = _infos.body[0];
+	else if (_infos.contentType == "multipart/form-data")
+	{
+		std::size_t i = 0;
+		std::size_t tmp;
+		while (i < _infos.body.size() && _infos.body[i] != "\r")
+		{
+			if (_infos.fileName.empty())
+			{
+				tmp = _infos.body[i].find("filename=");
+				if (tmp != std::string::npos)
+					_infos.fileName = _infos.body[i].substr(tmp + 10, (_infos.body[i].size() - 3));
+			}
+			i++;
+		}
+		while (i++ < (_infos.body.size() - 2))
+		{
+			_infos.fileBody += _infos.body[i];
+			tmp = _infos.body[i].size() - 1;
+			if (_infos.body[i][tmp] == '\r')
+				_infos.fileBody += '\n';
+		}
+	}
 }
 
 bool	Request::isGoodRequestLine( std::string& requestLine)
@@ -94,9 +119,19 @@ bool	Request::isGoodRequestLine( std::string& requestLine)
 	}
 	_infos.method = lineInfo[0];
 	_infos.version = lineInfo[2];
-	size_t	lastSlash = lineInfo[1].find_last_of( '/', lineInfo[1].size() );
+	
+	std::size_t	lastSlash = lineInfo[1].find_last_of( '/', lineInfo[1].size() );
 	_infos.locationRoot = lineInfo[1].substr( 0, lastSlash + 1 );
 	_infos.locationFile = lineInfo[1].substr( lastSlash + 1, lineInfo[1].length() );
+	if (_infos.method == "GET")
+	{
+		std::size_t		interrogation = _infos.locationFile.find( '?');
+		if (interrogation != std::string::npos)
+		{
+			_infos.queryString = _infos.locationFile.substr(interrogation + 1, _infos.locationFile.size());
+			_infos.locationFile = _infos.locationFile.substr(0, interrogation);
+		}
+	}
 	return true;
 }
 
@@ -119,9 +154,10 @@ bool	Request::isGoodHeaders( std::vector<std::string>& headers )
 		}
 		else if (line[0] == "Content-Type:" && _infos.method == "POST" )
 		{
-			if (line[1] == "application/x-www-form-urlencoded" 
-				|| line[1] == "multipart/form-data")
+			if ( line[1] == "application/x-www-form-urlencoded")
 				_infos.contentType = line[1];
+			else if (line[1].find("multipart/form-data") != std::string::npos)
+				_infos.contentType = "multipart/form-data";
 		}
 		else if (line[0] == "Content-Length:")
 		{
@@ -136,7 +172,7 @@ bool	Request::isGoodHeaders( std::vector<std::string>& headers )
 			_infos.bodyLengthRequest = atoi(word.c_str());
 		}
 	}
-	if (_infos.host.empty() || (_infos.contentType.empty() && _infos.bodyLengthRequest > -1) )
+	if (_infos.host.empty() || (_infos.contentType.empty() && _infos.bodyLengthRequest > 0) )
 		return (_code = 400, false);
 	return (true);
 }
