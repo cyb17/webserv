@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jp-de-to <jp-de-to@student.42.fr>          +#+  +:+       +#+        */
+/*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/26 15:36:30 by jp-de-to          #+#    #+#             */
-/*   Updated: 2024/07/14 12:07:21 by jp-de-to         ###   ########.fr       */
+/*   Updated: 2024/07/15 18:24:52 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,12 +44,9 @@ Step	Request::parseRequest( std::string& requestLine)
 		if (_headersTmp.empty() && line == "\r")
 			return (_code = 400, _step = complete);
 		if (line == "\r")
-			_step = body;
-		if (_step == body)
 		{
-			if (isGoodHeaders(_headersTmp) == false)
-				return (_step = complete);
-			if (_infos.method != "POST")
+			_step = body;
+			if (isGoodHeaders(_headersTmp) == false || _infos.method != "POST")
 				return (_step = complete);
 		}
 	}
@@ -69,6 +66,16 @@ Step	Request::parseRequest( std::string& requestLine)
 			if (_infos.bodyLen == _infos.bodyLengthRequest)
 			{
 				addInfos();
+				// for (size_t i = 0; i < _infos.body.size(); ++i)
+					// std::cout << _infos.body[i] << '\n';
+				// std::cout << "method : " << _infos.method << '\n';
+				// std::cout << "locationRoot : " << _infos.locationRoot << '\n';
+				// std::cout << "locationFile : " << _infos.locationFile << '\n';
+				// std::cout << "contentType : " << _infos.contentType << '\n';
+				// std::cout << "contentLength : " << _infos.contentLength << '\n';
+				// std::cout << "queryString : " << _infos.queryString << '\n';
+				// std::cout << "fileName : " << _infos.fileName << '\n';
+				// std::cout << "fileBody : " << _infos.fileBody << '\n';
 				return (_step = complete);
 			}
 		}
@@ -119,7 +126,6 @@ bool	Request::isGoodRequestLine( std::string& requestLine)
 	}
 	_infos.method = lineInfo[0];
 	_infos.version = lineInfo[2];
-	
 	std::size_t	lastSlash = lineInfo[1].find_last_of( '/', lineInfo[1].size() );
 	_infos.locationRoot = lineInfo[1].substr( 0, lastSlash + 1 );
 	_infos.locationFile = lineInfo[1].substr( lastSlash + 1, lineInfo[1].length() );
@@ -128,8 +134,8 @@ bool	Request::isGoodRequestLine( std::string& requestLine)
 		std::size_t		interrogation = _infos.locationFile.find( '?');
 		if (interrogation != std::string::npos)
 		{
-			_infos.queryString = _infos.locationFile.substr(interrogation + 1, _infos.locationFile.size());
 			_infos.locationFile = _infos.locationFile.substr(0, interrogation);
+			_infos.queryString = _infos.locationFile.substr(interrogation + 1, _infos.locationFile.size());
 		}
 	}
 	return true;

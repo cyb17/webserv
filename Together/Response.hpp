@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: joannpdetorres <joannpdetorres@student.    +#+  +:+       +#+        */
+/*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/08 13:40:46 by yachen            #+#    #+#             */
-/*   Updated: 2024/07/13 16:15:41 by joannpdetor      ###   ########.fr       */
+/*   Updated: 2024/07/15 15:30:15 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,8 +25,6 @@ class	Response
 {
 	private:
 	
-		char**		_env;
-	
 		// ResponseTools.cpp
 		std::string getGMTDate();
 		std::string	joinHeadersBody( const Server& config, std::string& body );
@@ -44,7 +42,7 @@ class	Response
 	
 	public:
 
-		Response( char** env );
+		Response();
 		~Response();
 
 		std::string	buildResponse( Request& request, HttpServer& httpServer );

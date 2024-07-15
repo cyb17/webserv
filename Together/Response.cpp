@@ -3,23 +3,23 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jp-de-to <jp-de-to@student.42.fr>          +#+  +:+       +#+        */
+/*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/08 13:44:19 by yachen            #+#    #+#             */
-/*   Updated: 2024/07/14 11:19:43 by jp-de-to         ###   ########.fr       */
+/*   Updated: 2024/07/15 17:48:22 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Response.hpp"
 
-Response::Response( char** env ) : _env( env ) {}
+Response::Response() {}
 
 Response::~Response() {}
 
 // construit une reponse d'erreur selon les pages d'erreurs configure dans le fichier .config
 std::string	Response::buildErrorResponse( int code, const Server& config )
 {
-	std::string	body = "No Specific Error Page found";
+	std::string	body = "Error";
 	std::string path = findErrorPage( code, config );
 	if (!path.empty())
 	{
@@ -156,7 +156,7 @@ std::string	Response::buildResponse( Request& request, HttpServer& httpServer )
 	Server			config = request.getServerConfig();
 	
 	std::string host = config.host + ':' + config.listen;
-	if (config.host == "127.0.0.1" && infos.host != host && infos.host != "localhost:" + config.listen)
+	if (infos.host != host && config.host == "127.0.0.1" && infos.host != "localhost:" + config.listen)
 		config = request.getDefaultConfig();
 	else if (infos.host != host)
 		config = request.getDefaultConfig();
@@ -182,24 +182,35 @@ std::string	Response::buildResponse( Request& request, HttpServer& httpServer )
 
 		if (infos.method == "DELETE")
 			return myDelete(config, infos );
-		/*else if (!infos.locationFile.empty() && infos.locationFile.find( ".sh" ) != std::string::npos )	//  le client demande a executer un script cgi
-		{
+		else if (!infos.locationFile.empty() && infos.locationFile.find( ".py" ) != std::string::npos )
+		{			//  le client demande a executer un script cgi
 			int	code = checkFileExistence( config.root + infos.locationRoot, infos.locationFile );
 			if (code != 200)
 				return buildErrorResponse( code, config );
 			std::string	body;
-			code = httpServer.executeCgi( config.root + infos.locationRoot + infos.locationFile, body );
-			std::cout << code << '\n';
+
+			// std::cout << "method : " << infos.method << '\n';
+			// std::cout << "locationRoot : " << infos.locationRoot << '\n';
+			// std::cout << "locationFile : " << infos.locationFile << '\n';
+			// std::cout << "contentType : " << infos.contentType << '\n';
+			// std::cout << "contentLength : " << infos.contentLength << '\n';
+			// std::cout << "queryString : " << infos.queryString << '\n';
+			// std::cout << "fileName : " << infos.fileName << '\n';
+			// std::cout << "fileBody : " << infos.fileBody << '\n';
+			
+			char** env = httpServer.createEnvCGI( infos );
+			code = httpServer.executeCgi( config.root + infos.locationRoot + infos.locationFile, body, env );
 			if (code != 200)
 				return buildErrorResponse( code, config );
 			response = "HTTP/1.1 200 OK\r\n" + joinHeadersBody( config, body );
-		}*/
-		else if (infos.method == "GET")
+		}
+		if (infos.method == "GET")
 			response = myGet( config, config.location[i], infos );
 		else if (infos.method == "POST")
 		{
 			std::string	body;
-			int code = httpServer.executeCgi( config.root + config.location[i].root + infos.locationFile, body );
+			char** env = httpServer.createEnvCGI( infos );
+			int code = httpServer.executeCgi( config.root + config.location[i].root + infos.locationFile, body, env );
 			if (code != 200)
 				return buildErrorResponse( code, config );
 			response = "HTTP/1.1 200 OK\r\n" + joinHeadersBody( config, body );

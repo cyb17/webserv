@@ -14,19 +14,12 @@
 
 #include "HttpServer.hpp"
 
-HttpServer::HttpServer(std::vector<Server>& extract) : _serverConfigLst(extract) {}
+HttpServer::HttpServer( std::vector<Server>& extract ) : _serverConfigLst( extract ) {}
 
 HttpServer::~HttpServer() {}
 
-/*SETUP ALL SERVERS
-Creer une boucle qui va creer une socket en mode ecoute pour chaque serveur indique
-dans le fichier de configuration :
-1. recuperer l'adresse IP et le port
-2. creer une socket pour le serveur
-3. lier l'adresse ip et le port au socket
-4. ecouter via la socket pour détecter des demandes de connexion
-5. ajouter le server socket a la liste de sockets
-*/
+// Creer une boucle qui va creer une socket en mode ecoute pour chaque serveur indique
+// dans le fichier de configuration
 void    HttpServer::setupAllServers()
 {	
 	for (unsigned long i = 0; i < _serverConfigLst.size(); ++i)
@@ -37,22 +30,24 @@ void    HttpServer::setupAllServers()
 		hints.ai_family = AF_INET;
 		hints.ai_socktype = SOCK_STREAM;
 		hints.ai_flags = AI_PASSIVE;
+			// recuperer l'adresse IP et le port
 		if (getaddrinfo(_serverConfigLst[i].host.c_str(), _serverConfigLst[i].listen.c_str() , &hints, &res) != 0)
 			exitError("getaddrinfo", res, 0);
-
+			// creer une socket pour le serveur
 		int serverSocket = socket(res->ai_family,res->ai_socktype | SOCK_NONBLOCK, res->ai_protocol);
 		if (serverSocket == -1)
 			exitError("socket", res, 1);
+			// lier l'adresse ip et le port au socket
 		if (bind(serverSocket, res->ai_addr, res->ai_addrlen) == -1)
 		{
 			close( serverSocket );
 			exitError("bind", res, 1);
-		}
+		}	// ecouter via la socket pour détecter des demandes de connexion
 		if (listen(serverSocket, BACKLOG) == -1)
 		{
 			close( serverSocket );
 			exitError("listen", res, 1);
-		}
+		}	// ajouter le server socket a la liste de sockets
 		pollfd serverFd = {serverSocket, POLLIN, 0};
 		_listSockets.push_back(serverFd);
 		_infoServerLst[serverSocket] = _serverConfigLst[i];
@@ -73,81 +68,47 @@ void	HttpServer::acceptNewConnexion(int serverSocket, Server& info)
 	}
 	pollfd clientFd = {clientSocket, POLLIN | POLLOUT, 0};
 	_listSockets.push_back(clientFd);
-	_infoClientLst[clientSocket] = info;	// associe la config serveur au socket client qui sera utile pour analyser la requete client.
+		// associe au socket client la configuration du serveur qui l'ecoute, qui sera utile pour l'analyse requete client.
+	_infoClientLst[clientSocket] = info;
 }
 
-void	HttpServer::createEnvCGI(ResponseInfos infos)
-{
-	const int envSize = 8;
-	_env = new char*[envSize];
-	std::string var[envSize - 1] = { "REQUEST_METHOD=" + infos.method,
-        							"PATH_INFO=" + infos.locationRoot + infos.locationFile,
-       								"CONTENT_TYPE=" + infos.contentType,
-        							"CONTENT_LENGTH=" + infos.contentLength,
-        							"QUERY_STRING=" + infos.queryString,
-									"FILENAME=" + infos.fileName,
-									"FILEBODY=" + infos.fileBody };
-	for (int i = 0; i < envSize - 1; ++i) 
-	{
-        _env[i] = new char[var[i].size() + 1]; 
-        std::strcpy(_env[i], var[i].c_str());
-	}
-	_env[envSize - 1] = NULL;
-}
-
-void HttpServer::freeEnv() 
-{
-	if (_env)
-	{
-    	for (int i = 0; _env[i] != NULL; ++i)
-		{
-    	    delete[] _env[i];
-		}
-		delete[] _env;
-	}
-}
-
-status	HttpServer::onRequestReceived(std::vector<struct pollfd>::iterator it)
+status	HttpServer::onRequestReceived(std::vector<struct pollfd>::iterator client)
 {
 	int	len;
-	char buffer[1024];
-	len = recv(it->fd, buffer, 1024, 0);
+	char buffer[1025];
+
+	len = recv(client->fd, buffer, 1024, 0);
 	if (len <= 0)
 		return (DISCONNECT);
 	buffer[len] = '\0';
-	std::string tmp(buffer);
-	std::cout << "request: " << tmp << '\n';	
-	if (_requestLst.empty() || _requestLst.find(it->fd) == _requestLst.end())
-	{	
-		Request request(_infoClientLst[it->fd], _serverConfigLst[0]);
-		_requestLst.insert(std::make_pair(it->fd, request));
+						
+	std::string requestContent(buffer);
+	std::cout << "request: " << requestContent << '\n';
+	if (_requestLst.empty() || _requestLst.find(client->fd) == _requestLst.end())
+	{		// creer une nouvelle requete si la liste est vide ou requestContent n'a pas trouve de morceau precedent.
+		Request request(_infoClientLst[client->fd], _serverConfigLst[0]);
+		_requestLst.insert(std::make_pair(client->fd, request));
 	}
-	if ( _requestLst[it->fd].parseRequest(tmp) != complete)
-	{
+	if ( _requestLst[client->fd].parseRequest(requestContent) != complete)
+	{		// configure un temps de limite pour rentrer les information d'une requete
 		time_t now;
 		double secs;
 		time(&now);
-		secs = difftime(now, _requestLst[it->fd].getStartTime());
+		secs = difftime(now, _requestLst[client->fd].getStartTime());
 		if (secs > 120)
-			return (_requestLst.erase(it->fd), DISCONNECT);
+			return (_requestLst.erase(client->fd), DISCONNECT);
 		return (CONNECT);
 	}
-	if (it->revents & POLLOUT)
+
+	if (client->revents & POLLOUT)
 	{
-		createEnvCGI(_requestLst[it->fd].getResponseInfos());
-		std::cout << "ENV:\n"; 
-		for (int i = 0; i < 8; i++)
-		{
-			std::cout << _env[i] << "\n";	
-		}
-		Response	response( _env );
-		std::string str = response.buildResponse( _requestLst[it->fd], *this );
-		int	bytesent = send( it->fd, str.c_str(), str.size(), 0 );
+		Response	response;
+		std::string str = response.buildResponse( _requestLst[client->fd], *this );
+		int	bytesent = send( client->fd, str.c_str(), str.size(), 0 );
 		if (bytesent == -1)
 			diplayMsgError("send");
 	}
-	freeEnv();
-	_requestLst.erase(it->fd);
+	_requestLst.erase(client->fd);
 	return (DISCONNECT);
 }
 
@@ -197,7 +158,6 @@ int	HttpServer::readCgiResult( int fd, std::string& body )
         body.append(buffer, bytesRead);
 		bytesRead = read(fd, buffer, bufferSize);
 	}
-	std::cout << "body: " << body << '\n';
     if (bytesRead == -1)
         return 500;
     return 200;
@@ -212,56 +172,78 @@ void	HttpServer::closeAllsSockets()
 	}
 }
 
+void	HttpServer::closeFds( int fd1, int fd2 )
+{
+	close( fd1 );
+	close( fd2 );
+}
+
+char**	HttpServer::createEnvCGI( ResponseInfos& infos )
+{	
+	const int	size = 8;
+	char**	env = new char*[size];
+	std::string var[size - 1] = { 	"REQUEST_METHOD=" + infos.method,
+        							"PATH_INFO=" + infos.locationRoot + infos.locationFile,
+       								"CONTENT_TYPE=" + infos.contentType,
+        							"CONTENT_LENGTH=" + infos.contentLength,
+        							"QUERY_STRING=" + infos.queryString,
+									"FILENAME=" + infos.fileName,
+									"FILEBODY=" + infos.fileBody };
+	for (int i = 0; i < size - 1; ++i) 
+	{
+        env[i] = new char[var[i].size() + 1]; 
+        std::strcpy( env[i], var[i].c_str() );
+	}
+	env[size - 1] = NULL;
+	return env;
+}
+
+void HttpServer::freeEnv( char**& env )
+{
+	if (env)
+	{
+    	for (int i = 0; env[i] != NULL; ++i)
+    	    delete[] env[i];
+		delete[] env;
+	}
+}
+
 // cree un processus enfant pour executer le script externe, mettre a jour body le code HTTP.
-int	HttpServer::executeCgi( std::string path, std::string& body )
+int	HttpServer::executeCgi( std::string path, std::string& body, char**& env )
 {
 	int	code = 200;
 	int	pipefd[2], status[2];
 	if (pipe( pipefd ) == -1)
 		return 500;
 	if (pipe( status ) == -1)
-	{
-		close( pipefd[1] );
-		close( pipefd[0] );
-		return 500;
-	}
+		return closeFds( pipefd[0], pipefd[1] ), 500;
 	pid_t	pid = fork();
 	if (pid == -1)
-	{
-		close( pipefd[1] );
-		close( pipefd[0] );
-		close( status[1] );
-		close( status[0] );
-		return 500;
-	}
+		return closeFds( pipefd[0], pipefd[1] ), closeFds( status[0], status[1] ), 500;
 	else if (pid == 0)
 	{
-		close(status[0]);
-		close( STDIN_FILENO );
-		close( pipefd[0] );
 		dup2( pipefd[1], STDOUT_FILENO );
-		close( pipefd[1] );
+		closeFds( status[0], STDIN_FILENO);
+		closeFds( pipefd[0], pipefd[1] );
 		const char*	argv[] = { path.c_str(), NULL };
-		if (execve( path.c_str(), (char* const* )argv, _env ) == -1)
+		if (execve( path.c_str(), (char* const* )argv, env ) == -1)
 		{
 			closeAllsSockets();
-			freeEnv();
+			freeEnv( env );
 			dup2( status[1], STDOUT_FILENO );
 			close( status[1] );
 			throw std::runtime_error( "execve failed" );
 		}
 	}
-	close( pipefd[1] );
-	close( status[1] );
+	closeFds( pipefd[1], status[1] );
 	std::string	childExitStatus;
 	readCgiResult( status[0], childExitStatus );
-	std::cout << "child exit status: " << childExitStatus << '\n';
 	if (childExitStatus.empty())
 		code = readCgiResult( pipefd[0], body );
 	else
 		code = 403;
-	close( status[0] );
-	close( pipefd[0] );
+	closeFds( pipefd[0], status[0] );
+	freeEnv( env );
 	return code;
 }
 
@@ -281,4 +263,7 @@ void	HttpServer::exitError(std::string err, addrinfo *res, int i)
 	}
 }
 
-void	HttpServer::diplayMsgError(const char *err) { std::cerr << "ERROR : " << err << " => " << strerror(errno) << "\n"; }
+void	HttpServer::diplayMsgError(const char *err)
+{ 
+	std::cerr << "ERROR : " << err << " => " << strerror(errno) << "\n";
+}

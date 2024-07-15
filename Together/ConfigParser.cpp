@@ -6,7 +6,7 @@
 /*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/24 16:39:38 by yachen            #+#    #+#             */
-/*   Updated: 2024/07/09 17:35:28 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/15 16:15:06 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -237,7 +237,7 @@ void	ConfigParser::checkHostPort()
 // definie les regles de configuration pour les parametres des directives 
 void	ConfigParser::checkParameterContent( std::vector<Token*>& directive )
 {
-	std::string	allowCaracters( "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ://." );
+	std::string	allowCaracters( "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ://._0123456789" );
 	size_t	size = directive.size();
 	
 	if (directive[0]->value == "serverName" && directive[1]->value.find_first_not_of( allowCaracters ) != std::string::npos)
@@ -263,15 +263,6 @@ void	ConfigParser::checkParameterContent( std::vector<Token*>& directive )
 		if (directive[1]->value != "301" && directive[1]->value != "302")
 			throw std::invalid_argument( directive[0]->value + ": unkown response code" );		
 	}
-	// else if (directive[0]->value == "errorPages")
-	// {	
-	// 	for (size_t i = 1; i < size; i += 2)
-	// 	{
-	// 		if (directive[i]->value != "404" && directive[i]->value != "500")
-	// 			throw std::invalid_argument( directive[0]->value + ": parameter error" );
-	// 	}
-	// }
-	
 }
 
 void	ConfigParser::checkLocation( std::vector<Token*>& location )

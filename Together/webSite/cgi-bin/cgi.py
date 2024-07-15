@@ -43,6 +43,7 @@ if content_type == 'application/x-www-form-urlencoded':
 	print("</html>")
 
 else:
+	
 	print("<html>")
 	print("<head>")
 	print("<title>CGI POST Example</title>")
