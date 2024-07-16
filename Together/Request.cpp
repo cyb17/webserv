@@ -6,7 +6,7 @@
 /*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/26 15:36:30 by jp-de-to          #+#    #+#             */
-/*   Updated: 2024/07/15 18:24:52 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/16 17:57:29 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,48 +54,65 @@ Step	Request::parseRequest( std::string& requestLine)
 	{
 		if (_infos.bodyLengthRequest <= 0 || _infos.bodyLengthRequest > _configServer.clientMaxBodySize)
 			return (_code = 400, _step = complete);
-		while (std::getline(request, line))
+		if (_infos.contentType == "multipart/form-data")
 		{
-			_infos.bodyLen += line.size();
-			std::string::iterator it = line.end() - 1;
-			if (*it == '\r')
-				_infos.bodyLen++;
-			if (_infos.body.empty() && line == "\r")
-				return (_code = 400, _step = complete);
-			_infos.body.push_back(line);
-			if (_infos.bodyLen == _infos.bodyLengthRequest)
+			size_t backSlashN = 0;
+			while (std::getline(request, line))
 			{
-				addInfos();
-				// for (size_t i = 0; i < _infos.body.size(); ++i)
-					// std::cout << _infos.body[i] << '\n';
-				// std::cout << "method : " << _infos.method << '\n';
-				// std::cout << "locationRoot : " << _infos.locationRoot << '\n';
-				// std::cout << "locationFile : " << _infos.locationFile << '\n';
-				// std::cout << "contentType : " << _infos.contentType << '\n';
-				// std::cout << "contentLength : " << _infos.contentLength << '\n';
-				// std::cout << "queryString : " << _infos.queryString << '\n';
-				// std::cout << "fileName : " << _infos.fileName << '\n';
-				// std::cout << "fileBody : " << _infos.fileBody << '\n';
-				return (_step = complete);
+				backSlashN++;
+				_infos.bodyLen += line.size() + 1;
+				// std::string::iterator it = line.end() - 1;
+				// if (*it == '\r')
+					// _infos.bodyLen++;
+				if (_infos.body.empty() && line == "\r")
+					return (_code = 400, _step = complete);
+				_infos.body.push_back(line);
+				if (_infos.bodyLen == _infos.bodyLengthRequest)
+				{
+					addInfos();
+					return (_step = complete);
+				}
 			}
+		}
+		else if (_infos.contentType == "application/x-www-form-urlencoded")
+		{
+			while (std::getline(request, line))
+			{
+				_infos.bodyLen += line.size();
+				// std::string::iterator it = line.end() - 1;
+				// if (*it == '\r')
+					// _infos.bodyLen++;
+				if (_infos.body.empty() && line == "\r")
+					return (_code = 400, _step = complete);
+				_infos.body.push_back(line);
+				if (_infos.bodyLen == _infos.bodyLengthRequest)
+				{
+					addInfos();
+					return (_step = complete);
+				}
+			}
+
 		}
 	}
 	return (_step);
 }
 
+//	ajoute les informations du body de la requete a ReponseInfos.
 void	Request::addInfos()
 {
 	if (_infos.contentType == "application/x-www-form-urlencoded")
-		_infos.queryString = _infos.body[0];
+	{
+		for (size_t i = 0; i < _infos.body.size(); ++i)
+			_infos.queryString += _infos.body[i];
+	}
 	else if (_infos.contentType == "multipart/form-data")
 	{
-		std::size_t i = 0;
-		std::size_t tmp;
+		size_t i = 0;
 		while (i < _infos.body.size() && _infos.body[i] != "\r")
 		{
 			if (_infos.fileName.empty())
 			{
-				tmp = _infos.body[i].find("filename=");
+				size_t tmp = _infos.body[i].find("filename=");
 				if (tmp != std::string::npos)
 					_infos.fileName = _infos.body[i].substr(tmp + 10, (_infos.body[i].size() - 3));
 			}
@@ -104,7 +121,7 @@ void	Request::addInfos()
 		while (i++ < (_infos.body.size() - 2))
 		{
 			_infos.fileBody += _infos.body[i];
-			tmp = _infos.body[i].size() - 1;
+			size_t tmp = _infos.body[i].size() - 1;
 			if (_infos.body[i][tmp] == '\r')
 				_infos.fileBody += '\n';
 		}
@@ -134,8 +151,8 @@ bool	Request::isGoodRequestLine( std::string& requestLine)
 		std::size_t		interrogation = _infos.locationFile.find( '?');
 		if (interrogation != std::string::npos)
 		{
-			_infos.locationFile = _infos.locationFile.substr(0, interrogation);
 			_infos.queryString = _infos.locationFile.substr(interrogation + 1, _infos.locationFile.size());
+			_infos.locationFile = _infos.locationFile.substr(0, interrogation);
 		}
 	}
 	return true;

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jp-de-to <jp-de-to@student.42.fr>          +#+  +:+       +#+        */
+/*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/26 11:35:27 by jp-de-to          #+#    #+#             */
-/*   Updated: 2024/07/14 11:24:16 by jp-de-to         ###   ########.fr       */
+/*   Updated: 2024/07/16 11:08:26 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,9 +64,7 @@ typedef struct ResponseInfos
 	int 		bodyLengthRequest;
 	int			bodyLen;
 	std::vector<std::string> body;
-	//formulaire
 	std::string queryString;
-	//fichier televerse
 	std::string	fileName;
 	std::string fileBody;
 } ResponsesInfos;

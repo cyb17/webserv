@@ -75,7 +75,7 @@ void	HttpServer::acceptNewConnexion(int serverSocket, Server& info)
 status	HttpServer::onRequestReceived(std::vector<struct pollfd>::iterator client)
 {
 	int	len;
-	char buffer[1025];
+	char buffer[1024];
 
 	len = recv(client->fd, buffer, 1024, 0);
 	if (len <= 0)
@@ -83,7 +83,7 @@ status	HttpServer::onRequestReceived(std::vector<struct pollfd>::iterator client
 	buffer[len] = '\0';
 						
 	std::string requestContent(buffer);
-	std::cout << "request: " << requestContent << '\n';
+	std::cout << "DEBUT REQUEST RECU: \n" << requestContent << "FIN REQUEST RECU\n";
 	if (_requestLst.empty() || _requestLst.find(client->fd) == _requestLst.end())
 	{		// creer une nouvelle requete si la liste est vide ou requestContent n'a pas trouve de morceau precedent.
 		Request request(_infoClientLst[client->fd], _serverConfigLst[0]);
