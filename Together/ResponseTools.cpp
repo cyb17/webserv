@@ -6,7 +6,7 @@
 /*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/10 15:16:14 by yachen            #+#    #+#             */
-/*   Updated: 2024/07/17 13:13:19 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/17 17:12:01 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,16 +45,22 @@ std::string	Response::joinHeadersBody( const Server& config, std::string& body, 
 	{
 		case 200:
 			statusLine = "HTTP/1.1 200 OK\r\n";
+			break;
 		case 400:
 			statusLine = "HTTP/1.1 400 Bad Request\r\n";
+			break;
 		case 403:
 			statusLine = "HTTP/1.1 403 Forbidden\r\n";
+			break;
 		case 404:
 			statusLine = "HTTP/1.1 404 Not Found\r\n";
+			break;
 		case 405:
 			statusLine = "HTTP/1.1 405 Method Not Allowed\r\n";
+			break;
 		case 408:
 			statusLine = "HTTP/1.1 408 Request Timeout\r\n";
+			break;
 		case 500:
 			statusLine = "HTTP/1.1 500 Internal Server Error\r\n";
 	}

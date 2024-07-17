@@ -12,10 +12,12 @@ cgitb.enable()
 request_method = os.getenv('REQUEST_METHOD', '')
 path_info = os.getenv('PATH_INFO', '')
 content_type = os.getenv('CONTENT_TYPE', '')
-content_length = os.getenv('CONTENT_LENGTH', '')
+# content_length = os.getenv('CONTENT_LENGTH', '')
 query_string = os.getenv('QUERY_STRING', '')
 file_name = os.getenv('FILENAME', '')
 file_body = os.getenv('FILEBODY', '')
+
+print(path_info)
 
 # Handling GET request
 if request_method == 'GET':

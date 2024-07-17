@@ -78,19 +78,21 @@ status	HttpServer::onRequestReceived(std::vector<struct pollfd>::iterator client
 	char buffer[BUFFER_SIZE];
 
 	len = recv(client->fd, buffer, BUFFER_SIZE - 1, 0);
-	if (len <= 0)
+	if (len < 0)
 		return (DISCONNECT);
 	buffer[len] = '\0';
 						
 	std::string requestContent(buffer);
 	std::cout << "\e[0;32mDEBUT REQUEST RECU: \n\e[0m" << requestContent << "\e[0;32m\nFIN REQUEST RECU\n\e[0m";
+	std::cout << "len = " << len << '\n'; 
+	
 	if (_requestLst.empty() || _requestLst.find(client->fd) == _requestLst.end())
 	{		// creer une nouvelle requete si la liste est vide ou requestContent n'a pas trouve de morceau precedent.
 		Request request(_infoClientLst[client->fd], _serverConfigLst[0]);
 		_requestLst.insert(std::make_pair(client->fd, request));
 	}
 
-	if (len < BUFFER_SIZE - 1)	// set _ndOfFullRequest == true
+	if (len == 0)	// set _ndOfFullRequest == true
 		_requestLst[client->fd].setEndOfFullRequest();
 
 	if ( _requestLst[client->fd].parseRequest(requestContent) != complete)
