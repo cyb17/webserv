@@ -6,7 +6,7 @@
 /*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/26 11:35:27 by jp-de-to          #+#    #+#             */
-/*   Updated: 2024/07/16 11:08:26 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/17 12:40:13 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,6 +77,7 @@ class	Request
 		int							_code;
 		Step						_step;
 		time_t						_startTime;
+		bool						_endOfFullRequest;
 		std::vector<std::string>	_headersTmp;
 		ResponseInfos 				_infos;
 			
@@ -90,11 +91,11 @@ class	Request
 		Request( Server& configServer, Server& defaultServer );
 		~Request();
 
-		void		printRequestInfos();
-		//void		printServer(Server& info);
+		// void		printRequestInfos();
 		Step		parseRequest( std::string& requestLine);
 
-		//GETTERS
+		void			setEndOfFullRequest();
+
 		int				getCode();
 		time_t			getStartTime();
 		ResponseInfos	getResponseInfos();

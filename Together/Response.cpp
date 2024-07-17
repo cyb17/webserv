@@ -6,7 +6,7 @@
 /*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/08 13:44:19 by yachen            #+#    #+#             */
-/*   Updated: 2024/07/16 11:59:32 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/17 13:33:42 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@ Response::~Response() {}
 // construit une reponse d'erreur selon les pages d'erreurs configure dans le fichier .config
 std::string	Response::buildErrorResponse( int code, const Server& config )
 {
-	std::string	body = "Error";
+	std::string	body;
 	std::string path = findErrorPage( code, config );
 	if (!path.empty())
 	{
@@ -29,23 +29,31 @@ std::string	Response::buildErrorResponse( int code, const Server& config )
 		if (checkFileExistence( root, file ) == 200)
 			makeBody( path, body );
 	}
-	std::string	headersBody = joinHeadersBody( config, body );
-	switch (code)
+	else
 	{
-		case 400:
-			return "HTTP/1.1 400 Bad Request\r\n" + headersBody;
-		case 403:
-			return "HTTP/1.1 403 Forbidden\r\n" + headersBody;
-		case 404:
-			return "HTTP/1.1 404 Not Found\r\n" + headersBody;
-		case 405:
-			return "HTTP/1.1 405 Method Not Allowed\r\n" + headersBody;
-		case 408:
-			return "HTTP/1.1 408 Request Timeout\r\n" + headersBody;
-		case 500:
-			return "HTTP/1.1 500 Internal Server Error\r\n" + headersBody;
+		switch (code)
+		{
+			case 400:
+				body = "400 Bad Request\r\n";
+				break;
+			case 403:
+				body = "403 Forbidden\r\n";
+				break;
+			case 404:
+				body = "404 Not Found\r\n";
+				break;
+			case 405:
+				body = "405 Method Not Allowed\r\n";
+				break;
+			case 408:
+				body = "408 Request Timeout\r\n";
+				break;
+			case 500:
+				body = "500 Internal Server Error\r\n";
+		}
 	}
-	return "HTTP/1.1 200 OK\r\n" + headersBody;
+	std::string	errorResponse = joinHeadersBody( config, body, code );
+	return errorResponse;
 }
 
 int	Response::deleteFolderRecursive (const std::string& dirPath)
@@ -107,8 +115,8 @@ std::string Response::myDelete(Server& config, ResponseInfos& infos)
 	}
 	else 
 		return (buildErrorResponse(500, config));
-	std::string	headersBody = joinHeadersBody(config, body);
-	return "HTTP/1.1 200 OK\r\n" + headersBody;
+	std::string	headersBody = joinHeadersBody(config, body, 200);
+	return headersBody;
 }
 
 // recupere une ressource demande par la requete HTTP
@@ -135,8 +143,8 @@ std::string	Response::myGet( Server& config, Location& location, ResponseInfos& 
 	if (response != 200)
 		return buildErrorResponse( response, config );
 	
-	std::string	headersBody = joinHeadersBody( config, body );
-	return "HTTP/1.1 200 OK\r\n" + headersBody;
+	std::string	headersBody = joinHeadersBody( config, body, 200);
+	return headersBody;
 }
 
 std::string	Response::redirectionHttp( std::pair<int, std::string> redirection )
@@ -161,8 +169,8 @@ std::string	Response::buildResponse( Request& request, HttpServer& httpServer )
 	else if (infos.host != host)
 		config = request.getDefaultConfig();
 	
-	if (request.getCode() == 400)
-		return buildErrorResponse( 400, config);
+	if (request.getCode() != 200)
+		return buildErrorResponse( request.getCode(), config);
 	else
 	{
 		unsigned long i = 0;			// verifie si ce root exist dans .config
@@ -184,26 +192,16 @@ std::string	Response::buildResponse( Request& request, HttpServer& httpServer )
 			return myDelete(config, infos );
 		else if ((!infos.locationFile.empty() && infos.locationFile.find( ".py" ) != std::string::npos)
 			|| infos.method == "POST")
-		{			//  le client demande a executer un script cgi ou veut post des donnees
+		{								//  le client demande a executer un script cgi ou veut post des donnees
 			int	code = checkFileExistence( config.root + infos.locationRoot, infos.locationFile );
 			if (code != 200)
 				return buildErrorResponse( code, config );
 			std::string	body;
-
-			std::cout << "method : " << infos.method << '\n';
-			std::cout << "locationRoot : " << infos.locationRoot << '\n';
-			std::cout << "locationFile : " << infos.locationFile << '\n';
-			std::cout << "contentType : " << infos.contentType << '\n';
-			std::cout << "contentLength : " << infos.contentLength << '\n';
-			std::cout << "queryString : " << infos.queryString << '\n';
-			std::cout << "fileName : " << infos.fileName << '\n';
-			std::cout << "fileBody : " << infos.fileBody << '\n';
-			
 			char** env = httpServer.createEnvCGI( infos );
 			code = httpServer.executeCgi( config.root + infos.locationRoot + infos.locationFile, body, env );
 			if (code != 200)
 				return buildErrorResponse( code, config );
-			response = "HTTP/1.1 200 OK\r\n" + joinHeadersBody( config, body );
+			response = joinHeadersBody( config, body, 200);
 		}
 		else if (infos.method == "GET")
 			response = myGet( config, config.location[i], infos );

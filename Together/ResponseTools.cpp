@@ -6,7 +6,7 @@
 /*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/10 15:16:14 by yachen            #+#    #+#             */
-/*   Updated: 2024/07/15 15:29:55 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/17 13:13:19 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,16 +35,34 @@ std::string Response::getGMTDate()
 	return ss.str();
 }
 
-std::string	Response::joinHeadersBody( const Server& config, std::string& body )
+std::string	Response::joinHeadersBody( const Server& config, std::string& body, int code )
 {
 	std::stringstream	ss;
 	ss << body.length();
 	std::string	bodyLength = ss.str();
+	std::string	statusLine;
+	switch (code)
+	{
+		case 200:
+			statusLine = "HTTP/1.1 200 OK\r\n";
+		case 400:
+			statusLine = "HTTP/1.1 400 Bad Request\r\n";
+		case 403:
+			statusLine = "HTTP/1.1 403 Forbidden\r\n";
+		case 404:
+			statusLine = "HTTP/1.1 404 Not Found\r\n";
+		case 405:
+			statusLine = "HTTP/1.1 405 Method Not Allowed\r\n";
+		case 408:
+			statusLine = "HTTP/1.1 408 Request Timeout\r\n";
+		case 500:
+			statusLine = "HTTP/1.1 500 Internal Server Error\r\n";
+	}
 	std::string	headersBody = 	getGMTDate() + "Server: " + config.serverName + "\r\n"
 								+ "Content-Type: text/html; charset=UTF-8\r\n"
 								+ "Content-Length: " + bodyLength + "\r\n\r\n"
 								+ body;
-	return headersBody;
+	return statusLine + headersBody;
 }
 
 // verifie si le fichier ou le dossier demande existe

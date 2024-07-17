@@ -6,7 +6,7 @@
 /*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/24 13:33:43 by joannpdetor       #+#    #+#             */
-/*   Updated: 2024/07/15 14:24:14 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/17 12:39:16 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,6 +31,7 @@
 # include <stdexcept>
 
 # define BACKLOG 1024
+# define BUFFER_SIZE 1024
 
 enum status
 {

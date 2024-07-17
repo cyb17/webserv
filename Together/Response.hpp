@@ -6,7 +6,7 @@
 /*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/08 13:40:46 by yachen            #+#    #+#             */
-/*   Updated: 2024/07/15 15:30:15 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/17 13:08:54 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,7 @@ class	Response
 	
 		// ResponseTools.cpp
 		std::string getGMTDate();
-		std::string	joinHeadersBody( const Server& config, std::string& body );
+		std::string	joinHeadersBody( const Server& config, std::string& body, int code );
 		int			checkFileExistence( std::string path, std::string& file );
 		int			makeBody( std::string path, std::string& body );
 		int 		makeListing(const std::string& dirRoot, std::string& body);
