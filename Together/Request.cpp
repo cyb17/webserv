@@ -6,7 +6,7 @@
 /*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/26 15:36:30 by jp-de-to          #+#    #+#             */
-/*   Updated: 2024/07/17 19:00:43 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/18 15:21:28 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,10 +55,9 @@ Step	Request::parseRequest( std::string& requestLine)
 	{
 		if (_infos.bodyLengthRequest <= 0 || _infos.bodyLengthRequest > _configServer.clientMaxBodySize)
 		{
-		std::cout << "debug \n";
+			std::cerr << "Error: request body length\n";
 			return (_code = 400, _step = complete);
 		}
-		std::cout << "debug 0\n";
 		while (std::getline(request, line))
 		{
 			_infos.bodyLen += line.size();
@@ -66,19 +65,15 @@ Step	Request::parseRequest( std::string& requestLine)
 				_infos.bodyLen++;
 			if (_infos.body.empty() && line == "\r")
 				return (_code = 400, _step = complete);
-		std::cout << "debug 1\n";
 			_infos.body.push_back(line);
 		}
 		std::cout << "bodyLen = " << _infos.bodyLen << '\n';
 		if (_infos.bodyLen == _infos.bodyLengthRequest)
 			return (addInfos(), _step = complete);
-		std::cout << "debug 2\n";
 		if (_infos.bodyLen > _infos.bodyLengthRequest)
 			return _code = 400, _step = complete;
-		std::cout << "debug 3\n";
 		if (_endOfFullRequest == true && _infos.bodyLen < _infos.bodyLengthRequest)
 			return _code = 400, _step = complete;
-		std::cout << "debug 4\n";
 	}
 	return (_step);
 }
