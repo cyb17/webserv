@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
+/*   By: jp-de-to <jp-de-to@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/26 15:36:30 by jp-de-to          #+#    #+#             */
-/*   Updated: 2024/07/18 15:21:28 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/18 19:03:32 by jp-de-to         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,11 +63,11 @@ Step	Request::parseRequest( std::string& requestLine)
 			_infos.bodyLen += line.size();
 			if (_infos.contentType == "multipart/form-data" && request.eof() == false)
 				_infos.bodyLen++;
+		std::cerr << "bodyLen = " << _infos.bodyLen << '\n';
 			if (_infos.body.empty() && line == "\r")
 				return (_code = 400, _step = complete);
 			_infos.body.push_back(line);
 		}
-		std::cout << "bodyLen = " << _infos.bodyLen << '\n';
 		if (_infos.bodyLen == _infos.bodyLengthRequest)
 			return (addInfos(), _step = complete);
 		if (_infos.bodyLen > _infos.bodyLengthRequest)
@@ -116,6 +116,7 @@ bool	Request::isGoodRequestLine( std::string& requestLine)
 	std::string word;
 	while ( iss >> word )
 		lineInfo.push_back( word );
+
 	if (lineInfo.size() != 3 || lineInfo[2] != "HTTP/1.1"
 		|| (lineInfo[0] != "GET" && lineInfo[0] != "POST" && lineInfo[0] != "DELETE"))
 	{

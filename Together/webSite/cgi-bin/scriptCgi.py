@@ -31,21 +31,21 @@ print("<h2>CGI Script Output</h2>")
 
 if "name" in form:
 	name = form["name"].value
-	print(f"<p>Nom : {name}<\p>")
+	print(f"<p>Nom : {name}</p>")
 if "comment" in form:
 	comment = form["comment"].value
-	print(f"<p>Comment : {comment}<\p>")
+	print(f"<p>Comment : {comment}</p>")
 if "file" in form:
 	file_item = form["file"]
 	if file_item.file:
 		filename = file_item.filename
 		file_content = file_item.file.read()
-		print(f"<p>Nom du fichier téléversé : {filename}<\p>")
-		print(f"<p>Contenu du fichier : {file_content.decode('utf-8')}<\p>")
+		print(f"<p>Nom du fichier téléversé : {filename}</p>")
+		print(f"<p>Contenu du fichier : {file_content.decode('utf-8')}</p>")
 	else:
-		print("<p>Aucun fichier téléversé<\p>")
+		print("<p>Aucun fichier téléversé</p>")
 else:
-	print("<p>Le champ 'file' n'est pas présent<\p>")
+	print("<p>Le champ 'file' n'est pas présent</p>")
 
 print("</body>")
 print("</html>")
