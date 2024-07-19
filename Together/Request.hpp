@@ -6,7 +6,7 @@
 /*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/26 11:35:27 by jp-de-to          #+#    #+#             */
-/*   Updated: 2024/07/17 12:40:13 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/19 17:00:36 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,16 +57,18 @@ typedef struct ResponseInfos
 	std::string	method;
 	std::string locationRoot;
 	std::string locationFile;
-	std::string version;
 	std::string host;
+	std::string queryString;
+	
 	std::string contentType;
 	std::string contentLength;
+	// std::string version;
 	int 		bodyLengthRequest;
 	int			bodyLen;
 	std::vector<std::string> body;
-	std::string queryString;
 	std::string	fileName;
 	std::string fileBody;
+	
 } ResponsesInfos;
 
 class	Request
@@ -91,13 +93,13 @@ class	Request
 		Request( Server& configServer, Server& defaultServer );
 		~Request();
 
-		// void		printRequestInfos();
-		Step		parseRequest( std::string& requestLine);
+		Step			parseRequest( std::string& requestLine);
 
 		void			setEndOfFullRequest();
 
 		int				getCode();
 		time_t			getStartTime();
+		bool			getEndOfFullRequest();
 		ResponseInfos	getResponseInfos();
 		Server 			getDefaultConfig();
 		Server			getServerConfig();

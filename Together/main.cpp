@@ -27,6 +27,10 @@ int	main( int argc, char** argv )
 	{
 		std::cout << "Error: " << e.what() << std::endl;
 	}
-	catch (std::runtime_error& ex) {}
+	catch (std::runtime_error& ex)
+	{
+
+		std::cout << "Error: " << ex.what() << std::endl;
+	}
 	return 0;
 }

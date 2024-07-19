@@ -1,15 +1,10 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <unistd.h>
 
-int	main()
+int	main(int ac, char** av, char** env)
 {
-	std::string	str("hello\r\n");
-	std::istringstream	ss( str );
-	std::string	line;
-	std::getline( ss, line );
-	if (line[line.size() - 1] == '\r')
-		std::cout << "backslashr\n";
-	std::cout << "line size : " << line.size() << '\n';
-
+	std::cout << ac << '\n';
+	execve( "./webSite/cgi-bin/scriptCgi.py", av, env );
 }

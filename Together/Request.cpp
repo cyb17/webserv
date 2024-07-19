@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jp-de-to <jp-de-to@student.42.fr>          +#+  +:+       +#+        */
+/*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/26 15:36:30 by jp-de-to          #+#    #+#             */
-/*   Updated: 2024/07/18 19:03:32 by jp-de-to         ###   ########.fr       */
+/*   Updated: 2024/07/19 18:49:03 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,9 +14,9 @@
 
 Request::Request() {}
 
-Request::Request( Server& configServer, Server& defaultServer ) : _defaultConfigServer(defaultServer), _configServer( configServer ), _code( 200 ), _step(firstLine)
+Request::Request( Server& configServer, Server& defaultServer ) : _defaultConfigServer(defaultServer), _configServer( configServer ), _code( 200 ), _step( firstLine )
 {
-	time(&_startTime);
+	time( &_startTime );
 	_infos.bodyLengthRequest = -1;
 	_infos.bodyLen = 0;
 	_endOfFullRequest = false;
@@ -25,7 +25,7 @@ Request::Request( Server& configServer, Server& defaultServer ) : _defaultConfig
 Request::~Request() {}
 
 // check request line, headers, body length and body.
-Step	Request::parseRequest( std::string& requestLine)
+Step	Request::parseRequest( std::string& requestLine )
 {
 	std::istringstream	request(requestLine);
 	std::string line;
@@ -44,12 +44,9 @@ Step	Request::parseRequest( std::string& requestLine)
 			_headersTmp.push_back(line);
 		if (_headersTmp.empty() && line == "\r")
 			return (_code = 400, _step = complete);
-		if (line == "\r")
-		{
-			_step = body;
-			if (isGoodHeaders(_headersTmp) == false || _infos.method != "POST")
-				return (_step = complete);
-		}
+		_step = body;
+		if (isGoodHeaders(_headersTmp) == false || _infos.method != "POST")
+			return (_step = complete);
 	}
 	if (_step == body)
 	{
@@ -61,13 +58,20 @@ Step	Request::parseRequest( std::string& requestLine)
 		while (std::getline(request, line))
 		{
 			_infos.bodyLen += line.size();
-			if (_infos.contentType == "multipart/form-data" && request.eof() == false)
-				_infos.bodyLen++;
-		std::cerr << "bodyLen = " << _infos.bodyLen << '\n';
 			if (_infos.body.empty() && line == "\r")
 				return (_code = 400, _step = complete);
+			if (_infos.contentType == "multipart/form-data" && request.eof() == false)
+			{
+				_infos.bodyLen++;
+				line += "\n";
+			}
 			_infos.body.push_back(line);
 		}
+		std::cerr << "bodyLen = " << _infos.bodyLen << '\n';
+		// std::cout << "------------------------\n";
+		// for (size_t i = 0; i < _infos.body.size(); ++i)
+			// std::cout << _infos.body[i];
+		// std::cout << "------------------------\n";
 		if (_infos.bodyLen == _infos.bodyLengthRequest)
 			return (addInfos(), _step = complete);
 		if (_infos.bodyLen > _infos.bodyLengthRequest)
@@ -78,56 +82,54 @@ Step	Request::parseRequest( std::string& requestLine)
 	return (_step);
 }
 
-//	ajoute les informations du body de la requete a ReponseInfos.
+//	remplie ReponseInfos fileName et fileBody
 void	Request::addInfos()
 {
 	if (_infos.contentType == "application/x-www-form-urlencoded")
 	{
 		for (size_t i = 0; i < _infos.body.size(); ++i)
-			_infos.queryString += _infos.body[i];
+			_infos.fileBody += _infos.body[i];
 	}
 	else if (_infos.contentType == "multipart/form-data")
 	{
 		size_t i = 0;
-		while (i < _infos.body.size() && _infos.body[i] != "\r")
-		{
+		while (i < _infos.body.size() && _infos.body[i] != "\r\n")
+		{	
 			if (_infos.fileName.empty())
 			{
 				size_t tmp = _infos.body[i].find("filename=");
 				if (tmp != std::string::npos)
-					_infos.fileName = _infos.body[i].substr(tmp + 10, (_infos.body[i].size() - 3));
+				{
+					_infos.fileName = _infos.body[i].substr(tmp + 10);
+					_infos.fileName.erase(_infos.fileName.size() - 3);
+				}
 			}
 			i++;
 		}
-		while (i++ < (_infos.body.size() - 2))
-		{
+		while (++i < _infos.body.size() - 1)
 			_infos.fileBody += _infos.body[i];
-			size_t tmp = _infos.body[i].size() - 1;
-			if (_infos.body[i][tmp] == '\r')
-				_infos.fileBody += '\n';
-		}
 	}
 }
 
+// remplie ResponseInfos : method, locationRoot, locationFile, queryString(pour GET)
 bool	Request::isGoodRequestLine( std::string& requestLine)
 {
 	std::istringstream	iss( requestLine );
 	std::vector<std::string>	lineInfo;
 	std::string word;
+	
 	while ( iss >> word )
 		lineInfo.push_back( word );
-
 	if (lineInfo.size() != 3 || lineInfo[2] != "HTTP/1.1"
 		|| (lineInfo[0] != "GET" && lineInfo[0] != "POST" && lineInfo[0] != "DELETE"))
-	{
-		_code = 400;
-		return false;
-	}
+		return _code = 400, false;
+		
 	_infos.method = lineInfo[0];
-	_infos.version = lineInfo[2];
+	// _infos.version = lineInfo[2];
 	std::size_t	lastSlash = lineInfo[1].find_last_of( '/', lineInfo[1].size() );
 	_infos.locationRoot = lineInfo[1].substr( 0, lastSlash + 1 );
 	_infos.locationFile = lineInfo[1].substr( lastSlash + 1, lineInfo[1].length() );
+	
 	if (_infos.method == "GET")
 	{
 		std::size_t		interrogation = _infos.locationFile.find( '?');
@@ -140,10 +142,11 @@ bool	Request::isGoodRequestLine( std::string& requestLine)
 	return true;
 }
 
+// remplie : Host, Content-type
 bool	Request::isGoodHeaders( std::vector<std::string>& headers )
 {
-	if (headers.empty())
-		return (_code = 400, false);
+	// if (headers.empty())
+		// return (_code = 400, false);
 	for (unsigned long i = 0; i < headers.size(); ++i)
 	{
 		std::istringstream iss(headers[i]);
@@ -188,27 +191,7 @@ void			Request::setEndOfFullRequest() { _endOfFullRequest = true; }
 
 int				Request::getCode() { return (_code); }
 time_t			Request::getStartTime() { return (_startTime); }
+bool			Request::getEndOfFullRequest() { return (_endOfFullRequest); }
 ResponseInfos	Request::getResponseInfos() { return (_infos); }
 Server 			Request::getDefaultConfig() { return (_defaultConfigServer); }
 Server			Request::getServerConfig()  { return (_configServer); }
-
-
-// void	Request::printRequestInfos()
-// {
-// 	std::cout << "REQUEST INFOS\n\n";
-// 	std::cout << "Code = " << _code << "\n";
-// 	std::cout << "* method = " << _infos.method << "\n";
-// 	std::cout << "* locationRoot = " << _infos.locationRoot << "\n";
-// 	std::cout << "* locationFile = " << _infos.locationFile << "\n";
-// 	std::cout << "* version = " << _infos.version << "\n";
-// 	std::cout << "* host = " << _infos.host << "\n";
-// 	if (_infos.body.size() > 0)
-// 	for (unsigned long i = 0; i << _infos.body.size(); ++i)
-// 	{
-// 		if (i == 0)
-// 			std::cout << "* body = " << _infos.body[i] << "\n";
-// 		else
-// 			std::cout << "         " << _infos.body[i] << "\n";
-// 	}
-// 	std::cout << "\n\n";
-// }

@@ -80,11 +80,13 @@ status	HttpServer::onRequestReceived(std::vector<struct pollfd>::iterator client
 	len = recv(client->fd, buffer, BUFFER_SIZE - 1, 0);
 	if (len < 0)
 	{
-		std::cerr << "Error: recv()\n";
+		std::cerr << "Socket: " << client->fd << " recv() error\n";
 		return (DISCONNECT);
 	}
+	else if (len == 0 && _requestLst.find(client->fd) == _requestLst.end())
+		return DISCONNECT;
 	buffer[len] = '\0';
-						
+
 	std::string requestContent(buffer);
 	std::cout << "\e[0;32mDEBUT REQUEST RECU: \n\e[0m" << requestContent << "\e[0;32m\nFIN REQUEST RECU\n\e[0m";
 	std::cout << "total request len = " << len << '\n'; 
@@ -172,6 +174,44 @@ int	HttpServer::readCgiResult( int fd, std::string& body )
     return 200;
 }
 
+// cree un processus enfant pour executer le script externe, mettre a jour body le code HTTP.
+int	HttpServer::executeCgi( std::string path, std::string& body, char**& env )
+{
+	int	code = 200;
+	int	pipefd[2];
+	if (pipe( pipefd ) == -1)
+		return 500;
+	pid_t	pid = fork();
+	if (pid == -1)
+		return closeFds( pipefd[0], pipefd[1] ), 500;
+	else if (pid == 0)
+	{
+		dup2( pipefd[1], STDOUT_FILENO );
+		closeFds( pipefd[0], pipefd[1] );
+		closeAllsSockets();
+		const char*	argv[] = { path.c_str(), NULL };
+		if (execve( path.c_str(), (char* const* )argv, env ) == -1)
+		{
+			freeEnv( env );
+			throw std::runtime_error( "execve failed" );
+		}
+	}
+	close( pipefd[1] );
+	code = readCgiResult( pipefd[0], body );
+	if (body == "Error: execve failed\n")
+	{
+		body.clear();
+		code = 403;
+	}
+	close( pipefd[0] );
+	freeEnv( env );
+	return code;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void	HttpServer::closeAllsSockets()
 {
 	while (!_listSockets.empty())
@@ -193,7 +233,7 @@ char**	HttpServer::createEnvCGI( ResponseInfos& infos )
 	char**	env = new char*[size];
 	std::string var[size - 1] = { 	"REQUEST_METHOD=" + infos.method,
         							"PATH_INFO=" + infos.locationRoot + infos.locationFile,
-       								"CONTENT_TYPE=" + infos.contentType,
+       								"CONTENT_TYPE=" + infos.contentType,// + infos.boundary,
         							"CONTENT_LENGTH=" + infos.contentLength,
         							"QUERY_STRING=" + infos.queryString,
 									"FILENAME=" + infos.fileName,
@@ -217,44 +257,6 @@ void HttpServer::freeEnv( char**& env )
 	}
 }
 
-// cree un processus enfant pour executer le script externe, mettre a jour body le code HTTP.
-int	HttpServer::executeCgi( std::string path, std::string& body, char**& env )
-{
-	int	code = 200;
-	int	pipefd[2], status[2];
-	if (pipe( pipefd ) == -1)
-		return 500;
-	if (pipe( status ) == -1)
-		return closeFds( pipefd[0], pipefd[1] ), 500;
-	pid_t	pid = fork();
-	if (pid == -1)
-		return closeFds( pipefd[0], pipefd[1] ), closeFds( status[0], status[1] ), 500;
-	else if (pid == 0)
-	{
-		dup2( pipefd[1], STDOUT_FILENO );
-		closeFds( status[0], STDIN_FILENO);
-		closeFds( pipefd[0], pipefd[1] );
-		const char*	argv[] = { path.c_str(), NULL };
-		if (execve( path.c_str(), (char* const* )argv, env ) == -1)
-		{
-			closeAllsSockets();
-			freeEnv( env );
-			dup2( status[1], STDOUT_FILENO );
-			close( status[1] );
-			throw std::runtime_error( "execve failed" );
-		}
-	}
-	closeFds( pipefd[1], status[1] );
-	std::string	childExitStatus;
-	readCgiResult( status[0], childExitStatus );
-	if (childExitStatus.empty())
-		code = readCgiResult( pipefd[0], body );
-	else
-		code = 403;
-	closeFds( pipefd[0], status[0] );
-	freeEnv( env );
-	return code;
-}
 
 void	HttpServer::exitError(std::string err, addrinfo *res, int i)
 {
