@@ -2,7 +2,7 @@
 #include "ConfigParser.hpp"
 #include "ConfigExtractor.hpp"
 
-int	main( int argc, char** argv, char** env )
+int	main( int argc, char** argv )
 {
 	if (argc != 2)
 	{
@@ -19,13 +19,18 @@ int	main( int argc, char** argv, char** env )
 		extrac.fillServerList( file.getTokenList() );
 		// extrac.printServerList();
 
-		HttpServer servers(extrac.getServerList(), env);
+		HttpServer servers(extrac.getServerList());
 		servers.setupAllServers();
 		servers.runAllServers();
 	}
 	catch (std::invalid_argument& e)
 	{
 		std::cout << "Error: " << e.what() << std::endl;
+	}
+	catch (std::runtime_error& ex)
+	{
+
+		std::cout << "Error: " << ex.what() << std::endl;
 	}
 	return 0;
 }

@@ -6,7 +6,7 @@
 /*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/08 13:40:46 by yachen            #+#    #+#             */
-/*   Updated: 2024/07/11 14:01:26 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/17 13:08:54 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,27 +25,24 @@ class	Response
 {
 	private:
 	
-		char**		_env;
-		
 		// ResponseTools.cpp
 		std::string getGMTDate();
-		std::string	joinHeadersBody( const Server& config, std::string& body );
+		std::string	joinHeadersBody( const Server& config, std::string& body, int code );
 		int			checkFileExistence( std::string path, std::string& file );
 		int			makeBody( std::string path, std::string& body );
 		int 		makeListing(const std::string& dirRoot, std::string& body);
 		std::string	findErrorPage( int code, const Server& config );
 		
-		// Reponse.cpp
+		// Response.cpp
 		std::string	buildErrorResponse( int code, const Server& config );
 		int			deleteFolderRecursive (const std::string& dirPath);
 		std::string myDelete(Server& config, ResponseInfos& infos);
 		std::string	myGet( Server& config, Location& location, ResponseInfos& infos );
-		std::string	redirectionHttp( std::pair<int, std::string> redirection, const Server& config );
-
-		
+		std::string	redirectionHttp( std::pair<int, std::string> redirection );
+	
 	public:
 
-		Response( char** env );
+		Response();
 		~Response();
 
 		std::string	buildResponse( Request& request, HttpServer& httpServer );

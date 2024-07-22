@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jp-de-to <jp-de-to@student.42.fr>          +#+  +:+       +#+        */
+/*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/26 11:35:27 by jp-de-to          #+#    #+#             */
-/*   Updated: 2024/07/11 15:28:40 by jp-de-to         ###   ########.fr       */
+/*   Updated: 2024/07/19 17:00:36 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,8 @@
 enum CODE
 {
 	C200, //OK
+	C301, //Moved Permanently
+	C302, //Found
 	C400, //bad request
 	C403, //Forbidden
 	C404, //not found
@@ -55,11 +57,18 @@ typedef struct ResponseInfos
 	std::string	method;
 	std::string locationRoot;
 	std::string locationFile;
-	std::string version;
 	std::string host;
+	std::string queryString;
+	
+	std::string contentType;
+	std::string contentLength;
+	// std::string version;
 	int 		bodyLengthRequest;
 	int			bodyLen;
 	std::vector<std::string> body;
+	std::string	fileName;
+	std::string fileBody;
+	
 } ResponsesInfos;
 
 class	Request
@@ -70,11 +79,13 @@ class	Request
 		int							_code;
 		Step						_step;
 		time_t						_startTime;
+		bool						_endOfFullRequest;
 		std::vector<std::string>	_headersTmp;
 		ResponseInfos 				_infos;
 			
 		bool		isGoodRequestLine( std::string& requestLine );
 		bool		isGoodHeaders( std::vector<std::string>& headers );
+		void		addInfos();
 
 	public:
 
@@ -82,13 +93,13 @@ class	Request
 		Request( Server& configServer, Server& defaultServer );
 		~Request();
 
-		void		printInfos();
-		void		printServer(Server& info);
-		Step		parseRequest( std::string& requestLine);
+		Step			parseRequest( std::string& requestLine);
 
-		//GETTERS
+		void			setEndOfFullRequest();
+
 		int				getCode();
 		time_t			getStartTime();
+		bool			getEndOfFullRequest();
 		ResponseInfos	getResponseInfos();
 		Server 			getDefaultConfig();
 		Server			getServerConfig();
