@@ -6,7 +6,7 @@
 /*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/26 15:36:30 by jp-de-to          #+#    #+#             */
-/*   Updated: 2024/07/19 18:49:03 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/22 11:27:21 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,9 +44,12 @@ Step	Request::parseRequest( std::string& requestLine )
 			_headersTmp.push_back(line);
 		if (_headersTmp.empty() && line == "\r")
 			return (_code = 400, _step = complete);
-		_step = body;
-		if (isGoodHeaders(_headersTmp) == false || _infos.method != "POST")
-			return (_step = complete);
+		if (line == "\r")
+		{
+			_step = body;
+			if (isGoodHeaders(_headersTmp) == false || _infos.method != "POST")
+				return (_step = complete);
+		}
 	}
 	if (_step == body)
 	{
@@ -68,10 +71,6 @@ Step	Request::parseRequest( std::string& requestLine )
 			_infos.body.push_back(line);
 		}
 		std::cerr << "bodyLen = " << _infos.bodyLen << '\n';
-		// std::cout << "------------------------\n";
-		// for (size_t i = 0; i < _infos.body.size(); ++i)
-			// std::cout << _infos.body[i];
-		// std::cout << "------------------------\n";
 		if (_infos.bodyLen == _infos.bodyLengthRequest)
 			return (addInfos(), _step = complete);
 		if (_infos.bodyLen > _infos.bodyLengthRequest)

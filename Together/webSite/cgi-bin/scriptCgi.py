@@ -22,11 +22,11 @@ query_string = os.getenv('QUERY_STRING', '')
 file_name = os.getenv('FILENAME', '')
 file_body = os.getenv('FILEBODY', '')
 
-print(f"request_method : {request_method}")
-print(f"content_type : {content_type}")
-print(f"query_string : {query_string}")
-print(f"file_name : {file_name}")
-print(f"file_body : {file_body}")
+# print(f"request_method : {request_method}")
+# print(f"content_type : {content_type}")
+# print(f"query_string : {query_string}")
+# print(f"file_name : {file_name}")
+# print(f"file_body : {file_body}")
 
 
 comment_file_path = '/mnt/nfs/homes/yachen/webserv/Together/webSite/dataSubmited/commentPage.html'
@@ -54,7 +54,7 @@ if request_method == 'GET':
 		print("<body>")
 		print("<h2>CGI Transformation Page</h2>")
 		print("<p>Name: {}</p>".format(name))
-		print("<p>Message: {}</p>".format(message))
+		print("<p>Message: {}</p>".format(comment))
 		print("</body>")
 		print("</html>")
 
@@ -63,8 +63,6 @@ elif request_method == 'POST':
 	if not file_body:
 		print("<html><body><h1>Nothing posted so nothing to save</h1></body></html>")
 	else:
-		if isinstance(file_body, str):
-			file_body = file_body.encode('utf-8')
 		if content_type == 'application/x-www-form-urlencoded':
 			try:
 				with open(comment_file_path, 'a') as comment_file:
@@ -73,6 +71,8 @@ elif request_method == 'POST':
 			except Exception as e:
 				print(f"<html><body><h1>Error saving comment: {e}</h1></body></html>")
 		elif content_type == 'multipart/form-data':
+			if isinstance(file_body, str):
+				file_body = file_body.encode('utf-8')
 			try:
 				file_path = os.path.join(upload_save_directory, file_name)
 				with open(file_path, 'wb') as uploaded_file:
