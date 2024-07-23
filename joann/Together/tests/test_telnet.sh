@@ -6,7 +6,7 @@ UNDERLINE='\033[4m'
 YELLOW='\033[1;33m'
 RED='\033[0;31m'
 GREEN='\033[0;32m'
-BLUE='\033[0;34m'
+BLUE='\033[0;36m'
 NC='\033[0m'
 
 PORT="8080"
@@ -102,17 +102,17 @@ function gettest3 {
 
 function gettest4 {
 	printf "====================================================\n\n\n"
-	printf "${BLUE}${BOLD}${UNDERLINE}* TEST 4: SUBMIT COMMENT\n\n\n${NC}"
+	printf "${BLUE}${BOLD}${UNDERLINE}* TEST 4: USE CGI WITH QUERY STRING\n\n\n${NC}"
 	printf "${BOLD}${UNDERLINE}REQUEST\n${NC}"
 	printf "___________________________________________________\n\n"
-	printf "GET /webPages/submitComment.html?name=Ya&comment=Hello HTTP/1.1\\\r\\\n\n"
+	printf "GET /cgi-bin/scriptCgi.py?name=Ya&comment=Hello HTTP/1.1\\\r\\\n\n"
 	printf "Host: %s:%s\\\r\\\n\n" "$HOST" "$PORT"
 	printf "\\\r\\\n                                             \n"
 	printf "___________________________________________________\n\n\n"	
 	printf "${BOLD}${UNDERLINE}RESPONSE\n${NC}"
 	printf "___________________________________________________\n\n"
 	response=$( {
-		echo "GET /webPages/submitComment.html?name=Ya&comment=Hello HTTP/1.1"		
+		echo "GET /cgi-bin/scriptCgi.py?name=Ya&comment=Hello HTTP/1.1"		
 		echo "Host: $HOST:$PORT"
 		echo ""
 		sleep 1
@@ -239,8 +239,8 @@ function posttest1 {
 	printf "___________________________________________________\n\n"
 	printf "POST /webPages/submitComment.html HTTP/1.1\\\r\\\n	 \n"
 	printf "Host: %s:%s\\\r\\\n\n" "$HOST" "$PORT"
-	printf "Content-Type: application/x-www-form-urlencoded\\r\\n\n"
-	printf "Content-Length: 35                                   \n"
+	printf "Content-Type: application/x-www-form-urlencoded\\\r\\\n\n"
+	printf "Content-Length: 35\\\r\\\n\n"
 	printf "\\\r\\\n                                             \n"
 	printf "name=Joann&comment=HI+TOUT+LE+MONDE                  \n"
 	printf "___________________________________________________${NC}\n\n\n"	

@@ -29,8 +29,8 @@ print(f"file_name : {file_name}")
 print(f"file_body : {file_body}")
 
 
-comment_file_path = '/Users/joannpdetorres/Documents/Projets_Ecole42/webserv/joann/Together/webSite/dataSubmited/commentPage.html'
-upload_save_directory = '/Users/joannpdetorres/Documents/Projets_Ecole42/webserv/joann/Together/webSite/dataSubmited/'
+comment_file_path = '/mnt/nfs/homes/jp-de-to/Projet_42/webserv/joann/Together/webSite/dataSubmited/commentPage.html'
+upload_save_directory = '/mnt/nfs/homes/jp-de-to/Projet_42/Projets_Ecole42/webserv/joann/Together/webSite/dataSubmited/'
 
 
 # Handling GET request

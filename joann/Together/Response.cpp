@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
+/*   By: jp-de-to <jp-de-to@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/08 13:44:19 by yachen            #+#    #+#             */
-/*   Updated: 2024/07/17 13:33:42 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/23 13:40:45 by jp-de-to         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -174,11 +174,15 @@ std::string	Response::buildResponse( Request& request, HttpServer& httpServer )
 	else
 	{
 		unsigned long i = 0;			// verifie si ce root exist dans .config
-		while (i < config.location.size() && infos.locationRoot != config.location[i].root)
+		while (i < config.location.size())
+		{
+			if (infos.locationRoot == config.location[i].root
+				|| (infos.locationRoot.find(config.location[i].root) != std::string::npos && config.location[i].root != "/"))
+				break;
 			i++;
+		}
 		if (i == config.location.size())
 			return buildErrorResponse( 404, config);
-		
 		if (!config.location[i].redirection.second.empty())	// si il existe une redirection HTTP, priorite avant tout.
 			return redirectionHttp( config.location[i].redirection );
 			
