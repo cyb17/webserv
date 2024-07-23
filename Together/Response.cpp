@@ -6,7 +6,7 @@
 /*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/08 13:44:19 by yachen            #+#    #+#             */
-/*   Updated: 2024/07/17 13:33:42 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/23 15:49:11 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -109,12 +109,12 @@ std::string Response::myDelete(Server& config, ResponseInfos& infos)
 		else
 		{
 			if (remove(path.c_str()) != 0)
-				return (buildErrorResponse(500, config));
+				return (buildErrorResponse(404, config));
 			body = "File deleted.\r\n";
 		}
 	}
 	else 
-		return (buildErrorResponse(500, config));
+		return (buildErrorResponse(404, config));
 	std::string	headersBody = joinHeadersBody(config, body, 200);
 	return headersBody;
 }
@@ -133,6 +133,8 @@ std::string	Response::myGet( Server& config, Location& location, ResponseInfos& 
 				response = makeBody( dirRoot + location.index, body );
 		else if (response == 200 && location.autoindex == "on" )
 				response = makeListing( dirRoot, body );
+		else
+			response = 404;
 	}
 	else							// la resource demande est un fichier
 	{
@@ -174,8 +176,13 @@ std::string	Response::buildResponse( Request& request, HttpServer& httpServer )
 	else
 	{
 		unsigned long i = 0;			// verifie si ce root exist dans .config
-		while (i < config.location.size() && infos.locationRoot != config.location[i].root)
+		while (i < config.location.size())
+		{
+			if (infos.locationRoot == config.location[i].root
+				|| (infos.locationRoot.find(config.location[i].root) != std::string::npos && config.location[i].root != "/"))
+				break;
 			i++;
+		}
 		if (i == config.location.size())
 			return buildErrorResponse( 404, config);
 		
@@ -198,6 +205,7 @@ std::string	Response::buildResponse( Request& request, HttpServer& httpServer )
 				return buildErrorResponse( code, config );
 			std::string	body;
 			char** env = httpServer.createEnvCGI( infos );
+			std::cout << config.root + infos.locationRoot + infos.locationFile << '\n';
 			code = httpServer.executeCgi( config.root + infos.locationRoot + infos.locationFile, body, env );
 			if (code != 200)
 				return buildErrorResponse( code, config );

@@ -89,7 +89,7 @@ status	HttpServer::onRequestReceived(std::vector<struct pollfd>::iterator client
 
 	std::string requestContent(buffer);
 	std::cout << "\e[0;32mDEBUT REQUEST RECU: \n\e[0m" << requestContent << "\e[0;32m\nFIN REQUEST RECU\n\e[0m";
-	std::cout << "total request len = " << len << '\n'; 
+	// std::cout << "total request len = " << len << '\n'; 
 	
 	if (_requestLst.empty() || _requestLst.find(client->fd) == _requestLst.end())
 	{		// creer une nouvelle requete si la liste est vide ou requestContent n'a pas trouve de morceau precedent.
@@ -106,7 +106,7 @@ status	HttpServer::onRequestReceived(std::vector<struct pollfd>::iterator client
 		double secs;
 		time(&now);
 		secs = difftime(now, _requestLst[client->fd].getStartTime());
-		if (secs > 120)
+		if (secs > 60)
 			return (_requestLst.erase(client->fd), DISCONNECT);
 		return (CONNECT);
 	}

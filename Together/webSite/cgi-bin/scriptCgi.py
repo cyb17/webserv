@@ -9,19 +9,17 @@ import urllib.parse
 # Enable debugging
 cgitb.enable()
 
-# print("Content-Type: text/html\n")
+# Get environment variables
 # path_info = os.getenv('PATH_INFO', '')
 # content_length = os.getenv('CONTENT_LENGTH', '')
-# print(f"path_info : {path_info}\n")
-# print(f"content_length : {content_length}\n")
-
-# Get environment variables
 request_method = os.getenv('REQUEST_METHOD', '')
 content_type = os.getenv('CONTENT_TYPE', '')
 query_string = os.getenv('QUERY_STRING', '')
 file_name = os.getenv('FILENAME', '')
 file_body = os.getenv('FILEBODY', '')
 
+# print(f"content_length : {content_length}\n")
+# print(f"path_info : {path_info}\n")
 # print(f"request_method : {request_method}")
 # print(f"content_type : {content_type}")
 # print(f"query_string : {query_string}")
@@ -38,7 +36,7 @@ if request_method == 'GET':
 	if not query_string:
 		print("<html>")
 		print("<body>")
-		print("<h1>No query string provided. CGI Default Page is delivered.</h1>")
+		print("<h1>CGI Default Page is delivered.</h1>")
 		print("</body>")
 		print("</html>")
 	else:

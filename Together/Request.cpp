@@ -6,7 +6,7 @@
 /*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/26 15:36:30 by jp-de-to          #+#    #+#             */
-/*   Updated: 2024/07/22 11:27:21 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/23 14:20:48 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,7 +70,7 @@ Step	Request::parseRequest( std::string& requestLine )
 			}
 			_infos.body.push_back(line);
 		}
-		std::cerr << "bodyLen = " << _infos.bodyLen << '\n';
+		// std::cerr << "bodyLen = " << _infos.bodyLen << '\n';
 		if (_infos.bodyLen == _infos.bodyLengthRequest)
 			return (addInfos(), _step = complete);
 		if (_infos.bodyLen > _infos.bodyLengthRequest)
