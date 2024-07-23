@@ -6,7 +6,7 @@
 /*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/24 13:33:43 by joannpdetor       #+#    #+#             */
-/*   Updated: 2024/07/19 17:37:17 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/23 17:27:09 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,12 @@
 # define BACKLOG 1024
 # define BUFFER_SIZE 1024
 
+# define RED "\e[0;31m"
+# define GREEN "\e[0;32m"
+# define CYAN "\e[0;36m"
+# define YELLOW "\e[0;33m"
+# define RESET "\e[0m"
+
 enum status
 {
 	CONNECT,
@@ -54,7 +60,6 @@ class HttpServer
 		
 		int		readCgiResult( int fd, std::string& body );
 		
-		void	closeFds( int fd1, int fd2 );
 		void	closeAllsSockets();
 		void 	diplayMsgError(const char *err);
 		void 	exitError(std::string err, addrinfo *res, int i);

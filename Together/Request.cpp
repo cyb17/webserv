@@ -6,7 +6,7 @@
 /*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/26 15:36:30 by jp-de-to          #+#    #+#             */
-/*   Updated: 2024/07/23 14:20:48 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/23 16:48:01 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,7 +70,6 @@ Step	Request::parseRequest( std::string& requestLine )
 			}
 			_infos.body.push_back(line);
 		}
-		// std::cerr << "bodyLen = " << _infos.bodyLen << '\n';
 		if (_infos.bodyLen == _infos.bodyLengthRequest)
 			return (addInfos(), _step = complete);
 		if (_infos.bodyLen > _infos.bodyLengthRequest)
@@ -124,7 +123,6 @@ bool	Request::isGoodRequestLine( std::string& requestLine)
 		return _code = 400, false;
 		
 	_infos.method = lineInfo[0];
-	// _infos.version = lineInfo[2];
 	std::size_t	lastSlash = lineInfo[1].find_last_of( '/', lineInfo[1].size() );
 	_infos.locationRoot = lineInfo[1].substr( 0, lastSlash + 1 );
 	_infos.locationFile = lineInfo[1].substr( lastSlash + 1, lineInfo[1].length() );
@@ -144,8 +142,6 @@ bool	Request::isGoodRequestLine( std::string& requestLine)
 // remplie : Host, Content-type
 bool	Request::isGoodHeaders( std::vector<std::string>& headers )
 {
-	// if (headers.empty())
-		// return (_code = 400, false);
 	for (unsigned long i = 0; i < headers.size(); ++i)
 	{
 		std::istringstream iss(headers[i]);

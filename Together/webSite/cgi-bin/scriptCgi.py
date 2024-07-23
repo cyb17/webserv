@@ -18,18 +18,27 @@ query_string = os.getenv('QUERY_STRING', '')
 file_name = os.getenv('FILENAME', '')
 file_body = os.getenv('FILEBODY', '')
 
-# print(f"content_length : {content_length}\n")
-# print(f"path_info : {path_info}\n")
-# print(f"request_method : {request_method}")
-# print(f"content_type : {content_type}")
-# print(f"query_string : {query_string}")
-# print(f"file_name : {file_name}")
-# print(f"file_body : {file_body}")
+current_directory = os.getcwd()
+comment_file_path = os.path.join(current_directory, 'webSite/cgi-bin/dataSubmited/commentPage.html')
+upload_save_directory = os.path.join(current_directory, 'webSite/cgi-bin/dataSubmited/')
 
 
-comment_file_path = '/mnt/nfs/homes/yachen/webserv/Together/webSite/dataSubmited/commentPage.html'
-upload_save_directory = '/mnt/nfs/homes/yachen/webserv/Together/webSite/dataSubmited/'
-
+def create_html_page(content)
+	# Parse the query string
+	query_params = urllib.parse.parse_qs(content)
+	name = query_params.get('name', [''])[0]
+	comment = query_params.get('comment', [''])[0]
+	# Print the HTML response
+	print("<html>")
+	print("<head>")
+	print("<title></title>")
+	print("</head>")
+	print("<body>")
+	print("<h2>CGI Transformation Page</h2>")
+	print("<p>Name: {}</p>".format(name))
+	print("<p>Message: {}</p>".format(comment))
+	print("</body>")
+	print("</html>")
 
 # Handling GET request
 if request_method == 'GET':
@@ -64,8 +73,8 @@ elif request_method == 'POST':
 		if content_type == 'application/x-www-form-urlencoded':
 			try:
 				with open(comment_file_path, 'a') as comment_file:
-					comment_file.write(file_body)
-				print("<html><body><h1>submitComment successfully</h1></body></html>")
+					comment_file.write(file_body + '\n')
+				print("<html><body><h1>submit Comment successfully</h1></body></html>")
 			except Exception as e:
 				print(f"<html><body><h1>Error saving comment: {e}</h1></body></html>")
 		elif content_type == 'multipart/form-data':
@@ -75,7 +84,7 @@ elif request_method == 'POST':
 				file_path = os.path.join(upload_save_directory, file_name)
 				with open(file_path, 'wb') as uploaded_file:
 					uploaded_file.write(file_body)
-				print("<html><body><h1>submitFile successfully</h1></body></html>")
+				print("<html><body><h1>submit File successfully</h1></body></html>")
 			except Exception as e:
 				print(f"<html><body><h1>Error saving file: {e}</h1></body></html>")
 				

@@ -6,7 +6,7 @@
 /*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/10 15:16:14 by yachen            #+#    #+#             */
-/*   Updated: 2024/07/23 15:08:42 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/23 16:46:49 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,9 +57,6 @@ std::string	Response::joinHeadersBody( const Server& config, std::string& body, 
 			break;
 		case 405:
 			statusLine = "HTTP/1.1 405 Method Not Allowed\r\n";
-			break;
-		case 408:
-			statusLine = "HTTP/1.1 408 Request Timeout\r\n";
 			break;
 		case 500:
 			statusLine = "HTTP/1.1 500 Internal Server Error\r\n";

@@ -6,7 +6,7 @@
 /*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/26 11:35:27 by jp-de-to          #+#    #+#             */
-/*   Updated: 2024/07/19 17:00:36 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/23 16:47:38 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,7 +40,6 @@ enum CODE
 	C403, //Forbidden
 	C404, //not found
 	C405, //Method Not Allowed
-	C408, //Request Timeout
 	C500, //Internal Server Error
 };
 
@@ -62,7 +61,6 @@ typedef struct ResponseInfos
 	
 	std::string contentType;
 	std::string contentLength;
-	// std::string version;
 	int 		bodyLengthRequest;
 	int			bodyLen;
 	std::vector<std::string> body;

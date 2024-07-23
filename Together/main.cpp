@@ -14,23 +14,22 @@ int	main( int argc, char** argv )
 		ConfigParser	file( argv[1] );
 		file.fillTokenList();
 		file.analyseTokenList();
-
 		ConfigExtractor	extrac;
 		extrac.fillServerList( file.getTokenList() );
-		// extrac.printServerList();
 
 		HttpServer servers(extrac.getServerList());
 		servers.setupAllServers();
+		std::cout << GREEN <<"\nALL SERVERS INITIALIZED WITH SUCCES...\n\n" << RESET;
 		servers.runAllServers();
 	}
 	catch (std::invalid_argument& e)
 	{
-		std::cout << "Error: " << e.what() << std::endl;
+		std::cerr << RED << "Error: " << e.what() << std::endl << RESET;
 	}
 	catch (std::runtime_error& ex)
 	{
 
-		std::cout << "Error: " << ex.what() << std::endl;
+		std::cout << RED << "Error: " << ex.what() << std::endl << RESET;
 	}
 	return 0;
 }

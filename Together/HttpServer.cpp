@@ -79,18 +79,13 @@ status	HttpServer::onRequestReceived(std::vector<struct pollfd>::iterator client
 
 	len = recv(client->fd, buffer, BUFFER_SIZE - 1, 0);
 	if (len < 0)
-	{
-		std::cerr << "Socket: " << client->fd << " recv() error\n";
-		return (DISCONNECT);
-	}
+		return (diplayMsgError("recv"), DISCONNECT);
 	else if (len == 0 && _requestLst.find(client->fd) == _requestLst.end())
 		return DISCONNECT;
 	buffer[len] = '\0';
 
 	std::string requestContent(buffer);
-	std::cout << "\e[0;32mDEBUT REQUEST RECU: \n\e[0m" << requestContent << "\e[0;32m\nFIN REQUEST RECU\n\e[0m";
-	// std::cout << "total request len = " << len << '\n'; 
-	
+	// std::cout << "\e[0;32mDEBUT REQUEST RECU: \n\e[0m" << requestContent << "\e[0;32m\nFIN REQUEST RECU\n\e[0m";
 	if (_requestLst.empty() || _requestLst.find(client->fd) == _requestLst.end())
 	{		// creer une nouvelle requete si la liste est vide ou requestContent n'a pas trouve de morceau precedent.
 		Request request(_infoClientLst[client->fd], _serverConfigLst[0]);
@@ -183,11 +178,12 @@ int	HttpServer::executeCgi( std::string path, std::string& body, char**& env )
 		return 500;
 	pid_t	pid = fork();
 	if (pid == -1)
-		return closeFds( pipefd[0], pipefd[1] ), 500;
+		return close( pipefd[0]), close( pipefd[1] ), 500;
 	else if (pid == 0)
 	{
 		dup2( pipefd[1], STDOUT_FILENO );
-		closeFds( pipefd[0], pipefd[1] );
+		close( pipefd[0] );
+		close( pipefd[1] );
 		closeAllsSockets();
 		const char*	argv[] = { path.c_str(), NULL };
 		if (execve( path.c_str(), (char* const* )argv, env ) == -1)
@@ -221,19 +217,13 @@ void	HttpServer::closeAllsSockets()
 	}
 }
 
-void	HttpServer::closeFds( int fd1, int fd2 )
-{
-	close( fd1 );
-	close( fd2 );
-}
-
 char**	HttpServer::createEnvCGI( ResponseInfos& infos )
 {	
 	const int	size = 8;
 	char**	env = new char*[size];
 	std::string var[size - 1] = { 	"REQUEST_METHOD=" + infos.method,
         							"PATH_INFO=" + infos.locationRoot + infos.locationFile,
-       								"CONTENT_TYPE=" + infos.contentType,// + infos.boundary,
+       								"CONTENT_TYPE=" + infos.contentType,
         							"CONTENT_LENGTH=" + infos.contentLength,
         							"QUERY_STRING=" + infos.queryString,
 									"FILENAME=" + infos.fileName,
@@ -276,5 +266,5 @@ void	HttpServer::exitError(std::string err, addrinfo *res, int i)
 
 void	HttpServer::diplayMsgError(const char *err)
 { 
-	std::cerr << "ERROR : " << err << " => " << strerror(errno) << "\n";
+	std::cerr << RED << "ERROR : " << err << " => " << strerror(errno) << "\n" << RESET;
 }

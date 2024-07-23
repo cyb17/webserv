@@ -1,17 +1,11 @@
 # Test de disponibilité
-siege -b -c 100 -t 5s http://yourserver.com/empty
+siege -b -c 100 -t 5s http://localhost:8080/empty
 
 # Surveillance de la mémoire
 watch -n 1 free -m
 
-# Test de fuite de mémoire
-siege -c 50 -t 30M http://yourserver.com/empty
-
 # Surveillance des connexions réseau
 watch -n 1 netstat -an | grep :80
-
-# Test de connexion suspendue
-siege -c 50 -t 30M http://yourserver.com/empty
 
 # Televerser un fichier
 curl -F file=@pathDuFichier http://localhost:8080/cgi-bin/scriptCgi.py
