@@ -46,14 +46,21 @@ def generate_html(comments):
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<title>Comments</title>
 		<style>
-			body { font-family: Arial, sans-serif; }
+			body
+			{
+				font-family: Arial, sans-serif;
+				background-color: #f4f4f9;
+			}
 			.comment { margin-bottom: 20px; }
-			.name { font-weight: bold; }
+			.name
+			{
+				font-weight: bold;
+				color: #007BFF;
+			}
 			.comment-text { margin-left: 20px; }
 		</style>
 	</head>
 	<body>
-	    <h1>Comments</h1>
 	"""
 
 	for comment in comments:
