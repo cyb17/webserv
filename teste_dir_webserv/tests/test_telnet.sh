@@ -228,7 +228,6 @@ run_deletetests
 
 
 
-function posttest1 {
 	printf "\n\n\n            ${YELLOW}_____________________________\n"
 	printf "            |                           |\n"
 	printf "            |    TESTING METHOD: POST   |\n"
@@ -237,7 +236,7 @@ function posttest1 {
 	printf "${BLUE}${BOLD}${UNDERLINE}* TEST 1: SUBMIT A COMMENT\n\n\n${NC}"
 	printf "${BOLD}${UNDERLINE}REQUEST\n${NC}"
 	printf "___________________________________________________\n\n"
-	printf "POST /webPages/submitComment.html HTTP/1.1\\\r\\\n	 \n"
+	printf "POST /cgi-bin/scriptCgi.py HTTP/1.1\\\r\\\n	 \n"
 	printf "Host: %s:%s\\\r\\\n\n" "$HOST" "$PORT"
 	printf "Content-Type: application/x-www-form-urlencoded\\\r\\\n\n"
 	printf "Content-Length: 35\\\r\\\n\n"
@@ -247,7 +246,7 @@ function posttest1 {
 	printf "${BOLD}${UNDERLINE}RESPONSE\n${NC}"
 	printf "___________________________________________________\n\n"
 	response=$( {
-		echo "POST /webPages/submitComment.html HTTP/1.1"		
+		echo "POST /cgi-bin/scriptCgi.py HTTP/1.1"		
 		echo "Host: $HOST:$PORT"
 		echo "Content-Type: application/x-www-form-urlencoded"
 		echo "Content-Length: 35"
@@ -264,47 +263,3 @@ function posttest1 {
     else
         printf "${RED}${BOLD}FAILURE 😭${NC}"
     fi
-}
-
-function posttest2 {
-	printf "====================================================\n\n\n"
-	printf "${BLUE}${BOLD}${UNDERLINE}* TEST 2: UPLOAD A FILE\n\n\n${NC}"
-	printf "${BOLD}${UNDERLINE}REQUEST\n${NC}"
-	printf "___________________________________________________\n\n"
-	printf "GET / HTTP/1.1\\\r\\\n	         \n"
-	printf "Host: %s:%s\\\r\\\n\n" "$HOST" "$PORT"
-	printf "\\\r\\\n                                             \n"
-	printf "___________________________________________________\n\n\n"	
-	printf "${BOLD}${UNDERLINE}RESPONSE\n${NC}"
-	printf "___________________________________________________\n\n"
-	response=$( {
-		echo "GET / HTTP/1.1"		
-		echo "Host: $HOST:$PORT"
-		echo ""
-		sleep 1
-	} | telnet $HOST $PORT)
-	printf "%s\n" "$response"
-	printf "___________________________________________________\n\n"
-	response_status=$(echo "$response" | grep "HTTP" | awk '{print $2}')
-	expected_status="200"
-	if [[ $response_status ==  $expected_status ]]; then
-        printf "${GREEN}${BOLD}SUCCESS 🥳${NC}"
-    else
-        printf "${RED}${BOLD}FAILURE 😭${NC}"
-    fi
-}
-
-posttests=(
-	posttest1
-)
-
-function run_posttests {
-    for test in "${posttests[@]}"; do
-        $test
-		printf "\n\n\n====================================================\n"
-        printf "${BOLD}${HIGHLIGHT}Press Enter to proceed to the next test...          ${NC}"
-        read
-    done
-}
-
-run_posttests
