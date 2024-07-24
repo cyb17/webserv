@@ -6,7 +6,7 @@
 /*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/10 15:16:14 by yachen            #+#    #+#             */
-/*   Updated: 2024/07/23 16:46:49 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/24 14:46:34 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,7 +81,7 @@ int	Response::checkFileExistence( std::string dirRoot, std::string& file )
 	{
     	while ((entry = readdir(dir)) != NULL)
 		{
-			if (entry->d_name == file)
+			if (entry->d_name == file && entry->d_type == DT_REG)
 				code = 200;
 		}
 	}

@@ -16,6 +16,7 @@ int	main( int argc, char** argv )
 		file.analyseTokenList();
 		ConfigExtractor	extrac;
 		extrac.fillServerList( file.getTokenList() );
+		// extrac.printServerList();
 
 		HttpServer servers(extrac.getServerList());
 		servers.setupAllServers();

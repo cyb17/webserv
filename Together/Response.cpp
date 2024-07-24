@@ -6,7 +6,7 @@
 /*   By: yachen <yachen@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/08 13:44:19 by yachen            #+#    #+#             */
-/*   Updated: 2024/07/23 15:49:11 by yachen           ###   ########.fr       */
+/*   Updated: 2024/07/24 15:41:21 by yachen           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,30 +27,30 @@ std::string	Response::buildErrorResponse( int code, const Server& config )
 		std::string root = path.substr( 0, slash + 1);
 		std::string	file = path.substr( slash + 1, path.size() );
 		if (checkFileExistence( root, file ) == 200)
-			makeBody( path, body );
-	}
-	else
-	{
-		switch (code)
 		{
-			case 400:
-				body = "400 Bad Request\r\n";
-				break;
-			case 403:
-				body = "403 Forbidden\r\n";
-				break;
-			case 404:
-				body = "404 Not Found\r\n";
-				break;
-			case 405:
-				body = "405 Method Not Allowed\r\n";
-				break;
-			case 408:
-				body = "408 Request Timeout\r\n";
-				break;
-			case 500:
-				body = "500 Internal Server Error\r\n";
+			makeBody( path, body );
+			return joinHeadersBody( config, body, code );
 		}
+	}
+	switch (code)
+	{
+		case 400:
+			body = "400 Bad Request\r\n";
+			break;
+		case 403:
+			body = "403 Forbidden\r\n";
+			break;
+		case 404:
+			body = "404 Not Found\r\n";
+			break;
+		case 405:
+			body = "405 Method Not Allowed\r\n";
+			break;
+		case 408:
+			body = "408 Request Timeout\r\n";
+			break;
+		case 500:
+			body = "500 Internal Server Error\r\n";
 	}
 	std::string	errorResponse = joinHeadersBody( config, body, code );
 	return errorResponse;
@@ -168,7 +168,7 @@ std::string	Response::buildResponse( Request& request, HttpServer& httpServer )
 	std::string host = config.host + ':' + config.listen;
 	if (infos.host != host && config.host == "127.0.0.1" && infos.host != "localhost:" + config.listen)
 		config = request.getDefaultConfig();
-	else if (infos.host != host)
+	else if (infos.host != host && config.host != "127.0.0.1")
 		config = request.getDefaultConfig();
 	
 	if (request.getCode() != 200)
@@ -178,7 +178,7 @@ std::string	Response::buildResponse( Request& request, HttpServer& httpServer )
 		unsigned long i = 0;			// verifie si ce root exist dans .config
 		while (i < config.location.size())
 		{
-			if (infos.locationRoot == config.location[i].root
+			if ((infos.locationRoot == config.location[i].root)
 				|| (infos.locationRoot.find(config.location[i].root) != std::string::npos && config.location[i].root != "/"))
 				break;
 			i++;
@@ -205,7 +205,6 @@ std::string	Response::buildResponse( Request& request, HttpServer& httpServer )
 				return buildErrorResponse( code, config );
 			std::string	body;
 			char** env = httpServer.createEnvCGI( infos );
-			std::cout << config.root + infos.locationRoot + infos.locationFile << '\n';
 			code = httpServer.executeCgi( config.root + infos.locationRoot + infos.locationFile, body, env );
 			if (code != 200)
 				return buildErrorResponse( code, config );
