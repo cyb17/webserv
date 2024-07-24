@@ -23,47 +23,74 @@ comment_file_path = os.path.join(current_directory, 'webSite/cgi-bin/dataSubmite
 upload_save_directory = os.path.join(current_directory, 'webSite/cgi-bin/dataSubmited/')
 
 
-def create_html_page(content)
-	# Parse the query string
-	query_params = urllib.parse.parse_qs(content)
-	name = query_params.get('name', [''])[0]
-	comment = query_params.get('comment', [''])[0]
-	# Print the HTML response
-	print("<html>")
-	print("<head>")
-	print("<title></title>")
-	print("</head>")
-	print("<body>")
-	print("<h2>CGI Transformation Page</h2>")
-	print("<p>Name: {}</p>".format(name))
-	print("<p>Message: {}</p>".format(comment))
-	print("</body>")
-	print("</html>")
+def parse_urlencoded(content):
+	lines = content.split('\n')
+	comments = []	
+	for line in lines:
+		if line.strip():  # Ignorer les lignes vides
+			parts = line.split('&')
+			comment_data = {}
+			for part in parts:
+				key, value = part.split('=')
+				comment_data[key] = value
+			comments.append(comment_data)
+
+	return comments
+
+def generate_html(comments):
+	html_content = """
+	<!DOCTYPE html>
+	<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Comments</title>
+		<style>
+			body { font-family: Arial, sans-serif; }
+			.comment { margin-bottom: 20px; }
+			.name { font-weight: bold; }
+			.comment-text { margin-left: 20px; }
+		</style>
+	</head>
+	<body>
+	    <h1>Comments</h1>
+	"""
+
+	for comment in comments:
+		html_content += f"""
+		<div class="comment">
+			<div class="name">{comment['name']}:</div>
+			<div class="comment-text">{comment['comment']}</div>
+		</div>
+		"""	
+	html_content += """
+	</body>
+	</html>
+	"""
+
+	return html_content
+
+
+def convert_file_to_html(file_path):
+	with open(file_path, 'r', encoding='utf-8') as file:
+		content = file.read()
+	comments = parse_urlencoded(content)
+	html = generate_html(comments)
+	print(html)
+
 
 # Handling GET request
 if request_method == 'GET':
 	if not query_string:
-		print("<html>")
-		print("<body>")
-		print("<h1>CGI Default Page is delivered.</h1>")
-		print("</body>")
-		print("</html>")
-	else:
-		# Parse the query string
-		query_params = urllib.parse.parse_qs(query_string)
+		print("<html><body><h1>CGI Default page is delivered</h1></body></html>")
+	elif query_string:
+		query_params = urllib.parse.parse_qs(content)
 		name = query_params.get('name', [''])[0]
 		comment = query_params.get('comment', [''])[0]
-		# Print the HTML response
-		print("<html>")
-		print("<head>")
-		print("<title></title>")
-		print("</head>")
-		print("<body>")
-		print("<h2>CGI Transformation Page</h2>")
+		print("<html><body>")
 		print("<p>Name: {}</p>".format(name))
 		print("<p>Message: {}</p>".format(comment))
-		print("</body>")
-		print("</html>")
+		print("</body></html>")
 
 # Handling POST request
 elif request_method == 'POST':
@@ -74,7 +101,8 @@ elif request_method == 'POST':
 			try:
 				with open(comment_file_path, 'a') as comment_file:
 					comment_file.write(file_body + '\n')
-				print("<html><body><h1>submit Comment successfully</h1></body></html>")
+				print("<html><body><h1>Comment submited successfully</h1></body></html>")
+				convert_file_to_html(comment_file_path)
 			except Exception as e:
 				print(f"<html><body><h1>Error saving comment: {e}</h1></body></html>")
 		elif content_type == 'multipart/form-data':
@@ -84,7 +112,7 @@ elif request_method == 'POST':
 				file_path = os.path.join(upload_save_directory, file_name)
 				with open(file_path, 'wb') as uploaded_file:
 					uploaded_file.write(file_body)
-				print("<html><body><h1>submit File successfully</h1></body></html>")
+				print("<html><body><h1>File submited successfully</h1></body></html>")
 			except Exception as e:
 				print(f"<html><body><h1>Error saving file: {e}</h1></body></html>")
 				
